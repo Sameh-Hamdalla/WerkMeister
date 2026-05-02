@@ -30,6 +30,7 @@ app = FastAPI()
 # -----------------------
 
 
+# „Wenn jemand ein Werkzeug einträgt, muss er mir sagen:“
 # Dieses Model beschreibt, welche Daten beim Erstellen
 # oder Bearbeiten eines Werkzeugs gesendet werden müssen
 class ToolCreate(BaseModel):
@@ -39,13 +40,16 @@ class ToolCreate(BaseModel):
     condition: str  # Zustand, z.B. gut, defekt
 
 
+# „Wenn ich ein Werkzeug zurückgebe, bekommt es zusätzlich eine ID“
+
+
 # Dieses Model beschreibt, welche Daten die API zurückgibt
 # Es erbt alle Felder von ToolCreate und ergänzt die id
 class ToolResponse(ToolCreate):
     id: int  # ID kommt aus der Datenbank
 
     class Config:
-        # Für Pydantic v1:
+        # Für Pydantic v1: „Pydantic darf auch mit Datenbank-Objekten (ORM-Objekten) arbeiten“
         orm_mode = True
 
         # Falls du Pydantic v2 nutzt, besser:
