@@ -1,88 +1,141 @@
-# FastAPI importieren (Framework für API)
-from fastapi import FastAPI
+# FastAPI = Framework für Backend
+# Depends = wird benutzt, um z.B. die Datenbank-Verbindung automatisch zu bekommen
+# HTTPException = damit wir saubere Fehlermeldungen zurückgeben können
+from fastapi import FastAPI, Depends, HTTPException
 
-# Datenbank-Setup importieren
-# engine = Verbindung zur DB
-# Base = Grundlage für Tabellen (Models)
-# SessionLocal = "Zugriff" auf die DB
-from database import engine, Base, SessionLocal
+# Session = eine aktive Verbindung zur Datenbank
+from sqlalchemy.orm import Session
 
-# Tabellen (Modelle) importieren
+# List = damit FastAPI weiß: hier kommt eine Liste zurück
+from typing import List
+
+# unsere eigenen Dateien importieren
 import models
+from database import engine, get_db
 
-# FastAPI App starten
+# BaseModel = Grundlage für Daten, die über die API reinkommen oder rausgehen
+from pydantic import BaseModel
+
+# Erstellt automatisch alle Tabellen in der Datenbank,
+# wenn sie noch nicht existieren
+models.Base.metadata.create_all(bind=engine)
+
+
+# FastAPI App erstellen
 app = FastAPI()
 
-# ----------------------------------------
-# erstellt automatisch deine Datenbank + Tabellen
-# ----------------------------------------
-# Base kennt alle Models (z.B. Tool)
-# create_all sorgt dafür, dass die Tabellen in der DB erstellt werden
-Base.metadata.create_all(bind=engine)
+
+# -----------------------
+# Pydantic Models
+# -----------------------
 
 
-# Funktion um eine DB-Verbindung zu bekommen
-def get_db():
-    db = SessionLocal()  # neue Verbindung zur DB starten
-    try:
-        yield db  # gibt die Verbindung zurück (FastAPI nutzt das später)
-    finally:
-        db.close()  # Verbindung wieder schließen
+# Dieses Model beschreibt, welche Daten beim Erstellen
+# oder Bearbeiten eines Werkzeugs gesendet werden müssen
+class ToolCreate(BaseModel):
+    name: str  # Name vom Werkzeug
+    category: str  # Kategorie, z.B. Handwerkzeug
+    location: str  # Standort, z.B. Garage
+    condition: str  # Zustand, z.B. gut, defekt
 
 
-# 🧪 Test-Route (einfach prüfen ob API läuft)
-@app.get("/")  # GET Anfrage an "/" (Startseite)
-def root():
-    # Gibt eine einfache Nachricht zurück
-    return {"msg": "läuft 🚀"}
+# Dieses Model beschreibt, welche Daten die API zurückgibt
+# Es erbt alle Felder von ToolCreate und ergänzt die id
+class ToolResponse(ToolCreate):
+    id: int  # ID kommt aus der Datenbank
+
+    class Config:
+        # Für Pydantic v1:
+        orm_mode = True
+
+        # Falls du Pydantic v2 nutzt, besser:
+        # from_attributes = True
 
 
-# ➕ Werkzeug hinzufügen
-@app.post("/tools")  # POST Anfrage → Daten werden GESPEICHERT
-def add_tool(name: str, category: str, location: str, condition: str):
+# -----------------------
+# CRUD Endpoints
+# -----------------------
 
-    # Neue Verbindung zur Datenbank öffnen
-    db = SessionLocal()
 
-    # Neues Werkzeug-Objekt erstellen (basierend auf deinem Model)
-    # models.Tool ist deine Tabelle (Bauplan)
-    new_tool = models.Tool(
-        name=name,  # Name des Werkzeugs
-        category=category,  # Kategorie (z.B. Elektro, Handwerk)
-        location=location,  # Standort (z.B. Lager)
-        condition=condition,  # Zustand (z.B. neu, gebraucht)
-    )
+# Neues Werkzeug erstellen
+@app.post("/tools/", response_model=ToolResponse)
+def create_tool(tool: ToolCreate, db: Session = Depends(get_db)):
+    # Aus den gesendeten Daten wird ein Datenbank-Objekt erstellt
+    db_tool = models.Tool(**tool.dict())
 
-    # Objekt zur Datenbank "hinzufügen" (noch nicht gespeichert!)
-    db.add(new_tool)
+    # Werkzeug zur Datenbank hinzufügen
+    db.add(db_tool)
 
-    # Änderungen endgültig speichern (sehr wichtig!)
+    # Änderung speichern
     db.commit()
 
-    # Objekt neu aus der DB laden (z.B. um ID zu bekommen)
-    db.refresh(new_tool)
+    # Objekt aktualisieren, damit z.B. die neue ID verfügbar ist
+    db.refresh(db_tool)
 
-    # Verbindung zur DB schließen (wichtig gegen Fehler)
-    db.close()
-
-    # Antwort an den Benutzer
-    return {"msg": "Tool gespeichert"}
+    # gespeichertes Werkzeug zurückgeben
+    return db_tool
 
 
-# 📋 Alle Werkzeuge anzeigen
-@app.get("/tools")  # GET Anfrage → Daten werden ABGERUFEN
-def get_tools():
+# Alle Werkzeuge anzeigen
+@app.get("/tools/", response_model=List[ToolResponse])
+def get_tools(db: Session = Depends(get_db)):
+    # Alle Einträge aus der Tabelle tools holen
+    return db.query(models.Tool).all()
 
-    # Verbindung zur Datenbank öffnen
-    db = SessionLocal()
 
-    # Alle Einträge aus der Tabelle "Tool" holen
-    # query() = Abfrage starten
-    # .all() = alle Datensätze holen
-    tools = db.query(models.Tool).all()
+# Ein einzelnes Werkzeug anhand der ID anzeigen
+@app.get("/tools/{tool_id}", response_model=ToolResponse)
+def get_tool(tool_id: int, db: Session = Depends(get_db)):
+    # Werkzeug mit passender ID suchen
+    tool = db.query(models.Tool).filter(models.Tool.id == tool_id).first()
 
-    # Verbindung schließen
-    db.close()
+    # Falls kein Werkzeug gefunden wurde
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool nicht gefunden")
 
-    # Daten zurückgeben (FastAPI wandelt automatisch in JSON um)
-    return tools
+    # gefundenes Werkzeug zurückgeben
+    return tool
+
+
+# Werkzeug bearbeiten
+@app.put("/tools/{tool_id}", response_model=ToolResponse)
+def update_tool(tool_id: int, updated_tool: ToolCreate, db: Session = Depends(get_db)):
+    # Werkzeug mit passender ID suchen
+    tool = db.query(models.Tool).filter(models.Tool.id == tool_id).first()
+
+    # Falls kein Werkzeug gefunden wurde
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool nicht gefunden")
+
+    # Alle neuen Werte übernehmen
+    for key, value in updated_tool.dict().items():
+        setattr(tool, key, value)
+
+    # Änderungen speichern
+    db.commit()
+
+    # aktualisiertes Werkzeug neu laden
+    db.refresh(tool)
+
+    # bearbeitetes Werkzeug zurückgeben
+    return tool
+
+
+# Werkzeug löschen
+@app.delete("/tools/{tool_id}")
+def delete_tool(tool_id: int, db: Session = Depends(get_db)):
+    # Werkzeug mit passender ID suchen
+    tool = db.query(models.Tool).filter(models.Tool.id == tool_id).first()
+
+    # Falls kein Werkzeug gefunden wurde
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool nicht gefunden")
+
+    # Werkzeug löschen
+    db.delete(tool)
+
+    # Löschung speichern
+    db.commit()
+
+    # Bestätigung zurückgeben
+    return {"message": "Tool gelöscht"}
