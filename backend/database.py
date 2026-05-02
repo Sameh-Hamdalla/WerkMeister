@@ -17,3 +17,12 @@ SessionLocal = sessionmaker(bind=engine)
 
 # Base = Grundlage für alle Tabellen (Models)
 Base = declarative_base()
+
+
+# 🔥 DIESE FUNKTION FEHLT BEI DIR
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
