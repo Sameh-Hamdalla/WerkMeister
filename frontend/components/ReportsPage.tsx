@@ -18,6 +18,7 @@ type Tool = {
   location: string;
   condition: string;
   received_date: string;
+  maintenance_date?: string | null;
 };
 
 type Props = {
@@ -25,6 +26,7 @@ type Props = {
 };
 
 type ReportType = "inventory" | "maintenance" | "locations" | "categories" | "incoming";
+type ReportRow = Record<string, string | number>;
 
 const reportOptions = [
   {
@@ -36,7 +38,7 @@ const reportOptions = [
   {
     id: "maintenance",
     title: "Wartungsbericht",
-    description: "Werkzeuge mit auffaelligem Zustand.",
+    description: "Werkzeuge mit Wartungstermin oder auffaelligem Zustand.",
     icon: ShieldAlert,
   },
   {
@@ -77,6 +79,9 @@ const isMaintenanceCondition = (condition: string) => {
   );
 };
 
+const hasMaintenanceReportEntry = (tool: Tool) =>
+  Boolean(tool.maintenance_date) || isMaintenanceCondition(tool.condition);
+
 const countBy = (tools: Tool[], key: "category" | "location") => {
   return Object.entries(
     tools.reduce<Record<string, number>>((result, tool) => {
@@ -89,59 +94,231 @@ const countBy = (tools: Tool[], key: "category" | "location") => {
 
 const escapeCsv = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
 
+const escapeHtml = (value: string | number) =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+const getRowsForReport = (reportType: ReportType, tools: Tool[]): ReportRow[] => {
+  if (reportType === "maintenance") {
+    return tools
+      .filter(hasMaintenanceReportEntry)
+      .sort((first, second) =>
+        (first.maintenance_date ?? "9999-12-31").localeCompare(
+          second.maintenance_date ?? "9999-12-31"
+        )
+      )
+      .map((tool) => ({
+        Name: tool.name,
+        Kategorie: tool.category,
+        Standort: tool.location,
+        Zustand: tool.condition,
+        Eingang: tool.received_date,
+        Wartungstermin: tool.maintenance_date ?? "",
+      }));
+  }
+
+  if (reportType === "locations") {
+    return countBy(tools, "location").map(([location, count]) => ({
+      Standort: location,
+      Anzahl: count,
+    }));
+  }
+
+  if (reportType === "categories") {
+    return countBy(tools, "category").map(([category, count]) => ({
+      Kategorie: category,
+      Anzahl: count,
+    }));
+  }
+
+  if (reportType === "incoming") {
+    return [...tools]
+      .sort((first, second) =>
+        second.received_date.localeCompare(first.received_date)
+      )
+      .map((tool) => ({
+        Eingang: tool.received_date,
+        Name: tool.name,
+        Kategorie: tool.category,
+        Standort: tool.location,
+        Zustand: tool.condition,
+        Wartungstermin: tool.maintenance_date ?? "",
+      }));
+  }
+
+  return tools.map((tool) => ({
+    Name: tool.name,
+    Kategorie: tool.category,
+    Standort: tool.location,
+    Zustand: tool.condition,
+    Eingang: tool.received_date,
+    Wartungstermin: tool.maintenance_date ?? "",
+  }));
+};
+
+const downloadCsv = (filename: string, csv: string) => {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const buildReportTableHtml = (title: string, rows: ReportRow[]) => {
+  if (rows.length === 0) {
+    return `
+      <section class="report-section">
+        <h2>${escapeHtml(title)}</h2>
+        <p>Keine Daten vorhanden.</p>
+      </section>
+    `;
+  }
+
+  const headers = Object.keys(rows[0]);
+  const tableRows = rows
+    .map(
+      (row) =>
+        `<tr>${headers
+          .map((header) => `<td>${escapeHtml(row[header])}</td>`)
+          .join("")}</tr>`
+    )
+    .join("");
+
+  return `
+    <section class="report-section">
+      <h2>${escapeHtml(title)}</h2>
+      <table>
+        <thead>
+          <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </section>
+  `;
+};
+
+const openPrintWindow = (title: string, bodyContent: string) => {
+  const printWindow = window.open("", "_blank", "width=900,height=700");
+
+  if (!printWindow) {
+    return;
+  }
+
+  printWindow.document.write(`
+    <!doctype html>
+    <html>
+      <head>
+        <title>${escapeHtml(title)}</title>
+        <style>
+          body {
+            margin: 32px;
+            color: #0f172a;
+            font-family: Arial, sans-serif;
+          }
+
+          h1 {
+            margin: 0 0 6px;
+            font-size: 24px;
+          }
+
+          h2 {
+            margin: 28px 0 10px;
+            font-size: 18px;
+          }
+
+          p {
+            margin: 0 0 20px;
+            color: #64748b;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+          }
+
+          tr {
+            page-break-inside: avoid;
+          }
+
+          th,
+          td {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            text-align: left;
+          }
+
+          th {
+            background: #eff6ff;
+          }
+
+          .report-section {
+            page-break-inside: avoid;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>${escapeHtml(title)}</h1>
+        <p>WerkMeister Bericht - ${new Date().toLocaleDateString("de-DE")}</p>
+        ${bodyContent}
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+};
+
 function ReportsPage({ tools }: Props) {
   const [selectedReport, setSelectedReport] = useState<ReportType>("inventory");
 
   const selectedOption = reportOptions.find((report) => report.id === selectedReport);
+  const maintenanceCount = tools.filter(hasMaintenanceReportEntry).length;
+  const categoriesCount = countBy(tools, "category").length;
+  const locationsCount = countBy(tools, "location").length;
+  const incomingCount = tools.filter((tool) => tool.received_date).length;
+
+  const inventoryStats = [
+    {
+      label: "Inventar gesamt",
+      value: tools.length,
+      hint: "Werkzeuge",
+      icon: ClipboardList,
+    },
+    {
+      label: "Kategorien",
+      value: categoriesCount,
+      hint: "Gruppen",
+      icon: Tags,
+    },
+    {
+      label: "Standorte",
+      value: locationsCount,
+      hint: "Lagerorte",
+      icon: MapPin,
+    },
+    {
+      label: "Wartung",
+      value: maintenanceCount,
+      hint: "auffaellig",
+      icon: ShieldAlert,
+    },
+    {
+      label: "Eingaenge",
+      value: incomingCount,
+      hint: "mit Datum",
+      icon: CalendarDays,
+    },
+  ];
 
   const rows = useMemo(() => {
-    if (selectedReport === "maintenance") {
-      return tools
-        .filter((tool) => isMaintenanceCondition(tool.condition))
-        .map((tool) => ({
-          Name: tool.name,
-          Kategorie: tool.category,
-          Standort: tool.location,
-          Zustand: tool.condition,
-          Eingang: tool.received_date,
-        }));
-    }
-
-    if (selectedReport === "locations") {
-      return countBy(tools, "location").map(([location, count]) => ({
-        Standort: location,
-        Anzahl: count,
-      }));
-    }
-
-    if (selectedReport === "categories") {
-      return countBy(tools, "category").map(([category, count]) => ({
-        Kategorie: category,
-        Anzahl: count,
-      }));
-    }
-
-    if (selectedReport === "incoming") {
-      return [...tools]
-        .sort((first, second) =>
-          second.received_date.localeCompare(first.received_date)
-        )
-        .map((tool) => ({
-          Eingang: tool.received_date,
-          Name: tool.name,
-          Kategorie: tool.category,
-          Standort: tool.location,
-          Zustand: tool.condition,
-        }));
-    }
-
-    return tools.map((tool) => ({
-      Name: tool.name,
-      Kategorie: tool.category,
-      Standort: tool.location,
-      Zustand: tool.condition,
-      Eingang: tool.received_date,
-    }));
+    return getRowsForReport(selectedReport, tools);
   }, [selectedReport, tools]);
 
   const downloadReport = () => {
@@ -153,18 +330,11 @@ function ReportsPage({ tools }: Props) {
     const csv = [
       headers.map(escapeCsv).join(";"),
       ...rows.map((row) =>
-        headers.map((header) => escapeCsv(row[header as keyof typeof row])).join(";")
+        headers.map((header) => escapeCsv(row[header])).join(";")
       ),
     ].join("\n");
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `${selectedReport}-bericht.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`${selectedReport}-bericht.csv`, csv);
   };
 
   const printReportAsPdf = () => {
@@ -172,77 +342,20 @@ function ReportsPage({ tools }: Props) {
       return;
     }
 
-    const headers = Object.keys(rows[0]);
-    const tableRows = rows
-      .map(
-        (row) =>
-          `<tr>${headers
-            .map((header) => `<td>${row[header as keyof typeof row]}</td>`)
-            .join("")}</tr>`
+    openPrintWindow(
+      selectedOption?.title ?? "Bericht",
+      buildReportTableHtml(selectedOption?.title ?? "Bericht", rows)
+    );
+  };
+
+  const printAllReportsAsPdf = () => {
+    const sections = reportOptions
+      .map((report) =>
+        buildReportTableHtml(report.title, getRowsForReport(report.id, tools))
       )
       .join("");
 
-    const printWindow = window.open("", "_blank", "width=900,height=700");
-
-    if (!printWindow) {
-      return;
-    }
-
-    printWindow.document.write(`
-      <!doctype html>
-      <html>
-        <head>
-          <title>${selectedOption?.title ?? "Bericht"}</title>
-          <style>
-            body {
-              margin: 32px;
-              color: #0f172a;
-              font-family: Arial, sans-serif;
-            }
-
-            h1 {
-              margin: 0 0 6px;
-              font-size: 24px;
-            }
-
-            p {
-              margin: 0 0 20px;
-              color: #64748b;
-            }
-
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              font-size: 12px;
-            }
-
-            th,
-            td {
-              padding: 10px;
-              border: 1px solid #cbd5e1;
-              text-align: left;
-            }
-
-            th {
-              background: #eff6ff;
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${selectedOption?.title ?? "Bericht"}</h1>
-          <p>WerkMeister Bericht · ${new Date().toLocaleDateString("de-DE")}</p>
-          <table>
-            <thead>
-              <tr>${headers.map((header) => `<th>${header}</th>`).join("")}</tr>
-            </thead>
-            <tbody>${tableRows}</tbody>
-          </table>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    openPrintWindow("Alle WerkMeister Berichte", sections);
   };
 
   return (
@@ -266,7 +379,30 @@ function ReportsPage({ tools }: Props) {
             <Printer size={18} />
             PDF speichern
           </button>
+          <button className="report-download all" type="button" onClick={printAllReportsAsPdf}>
+            <Printer size={18} />
+            Alle Berichte PDF
+          </button>
         </div>
+      </section>
+
+      <section className="inventory-stats" aria-label="Inventar Statistik">
+        {inventoryStats.map((stat) => {
+          const Icon = stat.icon;
+
+          return (
+            <article className="inventory-stat" key={stat.label}>
+              <div className="inventory-stat-icon">
+                <Icon size={18} />
+              </div>
+              <div>
+                <span>{stat.label}</span>
+                <strong>{stat.value}</strong>
+                <small>{stat.hint}</small>
+              </div>
+            </article>
+          );
+        })}
       </section>
 
       <section className="report-options" aria-label="Berichtstypen">

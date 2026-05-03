@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wrench, Settings } from "lucide-react";
+import { FileText, LayoutDashboard, LogIn, Settings, Wrench } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 
@@ -47,10 +47,34 @@ function Sidebar() {
               className={({ isActive }) =>
                 `sidebar-link ${isActive ? "active" : ""}`
               }
+              to="/berichte"
+            >
+              <FileText size={18} />
+              <span>Berichte</span>
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
               to="/einstellungen"
             >
               <Settings size={18} />
               <span>Einstellungen</span>
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
+              to="/login"
+            >
+              <LogIn size={18} />
+              <span>Login</span>
             </NavLink>
           </li>
         </ul>

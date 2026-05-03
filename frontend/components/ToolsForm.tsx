@@ -8,11 +8,13 @@ type Props = {
   location: string;
   condition: string;
   receivedDate: string;
+  maintenanceDate: string;
   setName: (v: string) => void;
   setCategory: (v: string) => void;
   setLocation: (v: string) => void;
   setCondition: (v: string) => void;
   setReceivedDate: (v: string) => void;
+  setMaintenanceDate: (v: string) => void;
   onSubmit: () => void;
   isEditing: boolean;
 };
@@ -23,11 +25,13 @@ function ToolForm({
   location,
   condition,
   receivedDate,
+  maintenanceDate,
   setName,
   setCategory,
   setLocation,
   setCondition,
   setReceivedDate,
+  setMaintenanceDate,
   onSubmit,
   isEditing,
 }: Props) {
@@ -50,7 +54,7 @@ function ToolForm({
           <p>
             {isEditing
               ? "Passe die Details an und speichere die Aenderung."
-              : "Erfasse Name, Kategorie, Standort, Zustand und Eingang."}
+              : "Erfasse Name, Kategorie, Standort, Zustand und Termine."}
           </p>
         </div>
       </div>
@@ -112,6 +116,18 @@ function ToolForm({
               type="date"
               value={receivedDate}
               onChange={(e) => setReceivedDate(e.target.value)}
+            />
+          </div>
+        </label>
+
+        <label className="tool-field">
+          <span>Wartungstermin</span>
+          <div className="tool-input">
+            <CalendarDays size={17} />
+            <input
+              type="date"
+              value={maintenanceDate}
+              onChange={(e) => setMaintenanceDate(e.target.value)}
             />
           </div>
         </label>

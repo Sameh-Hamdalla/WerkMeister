@@ -19,6 +19,7 @@ type Tool = {
   location: string;
   condition: string;
   received_date: string;
+  maintenance_date?: string | null;
 };
 
 type Props = {
@@ -64,7 +65,17 @@ function Dashboard({ tools }: Props) {
     .sort((first, second) => second[1] - first[1])
     .slice(0, 3);
 
-  const recentTools = [...tools].sort((a, b) => b.id - a.id).slice(0, 3);
+  const recentTools = [...tools]
+    .sort((first, second) => {
+      const dateCompare = second.received_date.localeCompare(first.received_date);
+
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+
+      return second.id - first.id;
+    })
+    .slice(0, 3);
   const latestReceivedDate = tools
     .map((tool) => tool.received_date)
     .filter(Boolean)
@@ -94,7 +105,7 @@ function Dashboard({ tools }: Props) {
       tone: "orange",
     },
     {
-      label: "Wartung faellig",
+      label: "Wartung fällig",
       value: maintenanceDue,
       hint: "Nach Zustand berechnet",
       icon: CalendarClock,
@@ -151,7 +162,7 @@ function Dashboard({ tools }: Props) {
           <div className="panel-header">
             <div>
               <span className="panel-kicker">Status</span>
-              <h3>Wartungsuebersicht</h3>
+              <h3>Wartungsübersicht</h3>
             </div>
             <Activity size={20} />
           </div>
@@ -160,7 +171,7 @@ function Dashboard({ tools }: Props) {
             <div className="maintenance-row">
               <span className="maintenance-dot green" />
               <div>
-                <strong>Geprueft</strong>
+                <strong>Geprüft</strong>
                 <p>{activeTools} Werkzeuge einsatzbereit</p>
               </div>
             </div>

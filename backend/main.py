@@ -35,6 +35,12 @@ def migrate_tools_table():
                 )
             )
 
+    if "maintenance_date" not in columns:
+        with engine.begin() as connection:
+            connection.execute(
+                text("ALTER TABLE tools ADD COLUMN maintenance_date VARCHAR(10)")
+            )
+
 
 migrate_tools_table()
 

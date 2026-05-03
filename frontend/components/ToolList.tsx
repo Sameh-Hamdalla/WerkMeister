@@ -8,6 +8,7 @@ type Tool = {
   location: string;
   condition: string;
   received_date: string;
+  maintenance_date?: string | null;
 };
 
 type Props = {
@@ -69,6 +70,12 @@ function ToolList({ tools, onEdit, onDelete }: Props) {
                 <CalendarDays size={13} />
                 {tool.received_date}
               </span>
+              {tool.maintenance_date && (
+                <span className="badge maintenance-date">
+                  <CalendarDays size={13} />
+                  Wartung {tool.maintenance_date}
+                </span>
+              )}
 
               <span
                 className={`badge condition ${getConditionClass(

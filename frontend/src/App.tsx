@@ -20,6 +20,7 @@ type Tool = {
   location: string;
   condition: string;
   received_date: string;
+  maintenance_date?: string | null;
 };
 
 const API_URL = "http://127.0.0.1:8000/api/tools";
@@ -33,6 +34,7 @@ function App() {
   const [receivedDate, setReceivedDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
+  const [maintenanceDate, setMaintenanceDate] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
 
   const fetchToolsData = async (): Promise<Tool[]> => {
@@ -60,6 +62,7 @@ function App() {
         location,
         condition,
         received_date: receivedDate,
+        maintenance_date: maintenanceDate || null,
       }),
     });
 
@@ -72,6 +75,7 @@ function App() {
     setLocation("");
     setCondition("");
     setReceivedDate(new Date().toISOString().slice(0, 10));
+    setMaintenanceDate("");
     fetchToolsData().then(setTools);
   };
 
@@ -87,6 +91,7 @@ function App() {
         location,
         condition,
         received_date: receivedDate,
+        maintenance_date: maintenanceDate || null,
       }),
     });
 
@@ -100,6 +105,7 @@ function App() {
     setLocation("");
     setCondition("");
     setReceivedDate(new Date().toISOString().slice(0, 10));
+    setMaintenanceDate("");
     fetchToolsData().then(setTools);
   };
 
@@ -117,6 +123,7 @@ function App() {
     setLocation(tool.location);
     setCondition(tool.condition);
     setReceivedDate(tool.received_date);
+    setMaintenanceDate(tool.maintenance_date ?? "");
   };
 
   useEffect(() => {
@@ -147,11 +154,13 @@ function App() {
                         location={location}
                         condition={condition}
                         receivedDate={receivedDate}
+                        maintenanceDate={maintenanceDate}
                         setName={setName}
                         setCategory={setCategory}
                         setLocation={setLocation}
                         setCondition={setCondition}
                         setReceivedDate={setReceivedDate}
+                        setMaintenanceDate={setMaintenanceDate}
                         onSubmit={editId ? updateTool : addTool}
                         isEditing={!!editId}
                       />

@@ -28,3 +28,6 @@ class Tool(Base):
 
     # Eingangsdatum (z.B. 2026-05-03)
     received_date = Column(String(10), nullable=False, default=lambda: date.today().isoformat())
+
+    # Wartungstermin (z.B. 2026-06-15)
+    maintenance_date = Column(String(10), nullable=True)

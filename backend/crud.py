@@ -16,7 +16,7 @@ def create_tool(db: Session, tool_data: dict):
 
 # 📋 Alle Tools holen
 def get_tools(db: Session):
-    return db.query(models.Tool).all()
+    return db.query(models.Tool).order_by(models.Tool.id.desc()).all()
 
 
 # 🔍 Einzelnes Tool

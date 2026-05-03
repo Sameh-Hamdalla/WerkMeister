@@ -34,6 +34,11 @@ function Footer() {
               Support
             </a>
           </li>
+          <li>
+            <a href="https://www.hamdalla-web.com" target="_blank" rel="noreferrer">
+              HAMDALLA WEB
+            </a>
+          </li>
         </ul>
 
         <span className="footer-copy">&copy; 2026</span>

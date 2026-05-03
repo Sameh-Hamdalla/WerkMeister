@@ -80,6 +80,11 @@
   border: 1px solid transparent;
 }
 
+.maintenance-date {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
 .condition.good {
   background: #dcfce7;
   border-color: #bbf7d0;

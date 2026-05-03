@@ -1,4 +1,5 @@
-import { Bell } from "lucide-react";
+import { Bell, Lock, LogIn, Mail } from "lucide-react";
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import "./Navbar.css";
 
@@ -10,12 +11,20 @@ const navItems = [
 ];
 
 function Navbar() {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-left">
         <NavLink className="navbar-brand" to="/" aria-label="Zur Dashboard-Seite">
           <div className="logo-box">W</div>
-          <h1 className="logo-text">WerkMeister</h1>
+          <h1 className="navbar-logo-text">WerkMeister</h1>
         </NavLink>
       </div>
 
@@ -40,9 +49,57 @@ function Navbar() {
           <Bell size={18} />
         </button>
 
-        <NavLink className="avatar" to="/login" aria-label="Login oeffnen">
+        <button
+          className={`avatar ${isLoginOpen ? "active" : ""}`}
+          type="button"
+          aria-expanded={isLoginOpen}
+          aria-label="Login ein- oder ausblenden"
+          onClick={() => setIsLoginOpen((current) => !current)}
+        >
           A
-        </NavLink>
+        </button>
+
+        {isLoginOpen && (
+          <div className="navbar-login" role="dialog" aria-label="Zugangsdaten">
+            <div className="navbar-login-header">
+              <strong>Zugangsdaten</strong>
+              <span>WerkMeister Login</span>
+            </div>
+
+            <form className="navbar-login-form" onSubmit={handleLoginSubmit}>
+              <label>
+                <span>E-Mail</span>
+                <div className="navbar-login-input">
+                  <Mail size={15} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="name@firma.de"
+                  />
+                </div>
+              </label>
+
+              <label>
+                <span>Passwort</span>
+                <div className="navbar-login-input">
+                  <Lock size={15} />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Passwort"
+                  />
+                </div>
+              </label>
+
+              <button className="navbar-login-submit" type="submit">
+                <LogIn size={16} />
+                Einloggen
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </nav>
   );
