@@ -1,64 +1,101 @@
-/* ===== SIDEBAR ===== */
+/* ===== SIDEBAR BASE ===== */
 .sidebar {
-  width: 260px;
+  width: 250px;
+  height: 100vh;
   background: #0f172a;
-  color: white;
-  padding: 2rem 1.5rem;
+  padding: 20px 16px;
+
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  box-shadow: var(--shadow-xl);
-  transition: var(--transition);
+  gap: 30px;
+
+  position: sticky;
+  top: 0;
 }
 
-.sidebar h2 {
-  font-size: 1.5rem;
+/* ===== HEADER ===== */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* LOGO */
+.logo-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
   font-weight: 700;
-  margin-bottom: 2.5rem;
-  background: linear-gradient(135deg, white, #e2e8f0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
-.sidebar ul {
+.logo-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+/* ===== NAV ===== */
+.sidebar-nav ul {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
 }
 
-.sidebar li {
+/* ITEM */
+.sidebar-link {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-radius: var(--radius);
-  cursor: pointer;
+  gap: 12px;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  color: #94a3b8;
+  font-size: 14px;
   font-weight: 500;
-  color: #cbd5e1;
-  transition: var(--transition);
-  font-size: 0.95rem;
+  text-decoration: none;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.sidebar li:hover {
-  background: rgba(255,255,255,0.1);
-  color: white;
-  transform: translateX(4px);
-}
-
-.sidebar .active {
-  background: var(--accent);
+/* HOVER */
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.06);
   color: white;
 }
 
-.sidebar svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
+/* ACTIVE */
+.sidebar-link.active {
+  background: #2563eb;
+  color: white;
 }
 
+/* ICON */
+.sidebar-nav svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   .sidebar {
     display: none;

@@ -1,20 +1,16 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-// 🔹 Layout Komponenten
 import Navbar from "../components/Navbar";
-import Topbar from "../components/Topbar";
+import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
-// 🔹 Content
 import Dashboard from "../components/Dashboard";
 import ToolForm from "../components/ToolsForm";
 import ToolList from "../components/ToolList";
 
-// 🔹 Globales CSS
 import "./App.css";
 
-
-// 🔹 TypeScript Typ für ein Tool
 type Tool = {
   id: number;
   name: string;
@@ -24,10 +20,6 @@ type Tool = {
 };
 
 function App() {
-
-  // ================================
-  // 🔹 STATE
-  // ================================
   const [tools, setTools] = useState<Tool[]>([]);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -35,25 +27,17 @@ function App() {
   const [condition, setCondition] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
 
-
-  // ================================
-  // 🔹 API CALLS
-  // ================================
   const fetchToolsData = async (): Promise<Tool[]> => {
     const res = await fetch("http://127.0.0.1:8000/tools/");
-    const data = await res.json();
-    return data;
+    return await res.json();
   };
 
   const addTool = async () => {
     await fetch("http://127.0.0.1:8000/tools/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, category, location, condition }),
     });
-
     fetchToolsData().then(setTools);
   };
 
@@ -62,9 +46,7 @@ function App() {
 
     await fetch(`http://127.0.0.1:8000/tools/${editId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, category, location, condition }),
     });
 
@@ -76,7 +58,6 @@ function App() {
     await fetch(`http://127.0.0.1:8000/tools/${id}`, {
       method: "DELETE",
     });
-
     fetchToolsData().then(setTools);
   };
 
@@ -88,60 +69,90 @@ function App() {
     setCondition(tool.condition);
   };
 
-
-  // ================================
-  // 🔹 LOAD DATA
-  // ================================
   useEffect(() => {
     fetchToolsData().then(setTools);
   }, []);
 
-
-  // ================================
-  // 🔹 UI (ULTRA LAYOUT)
-  // ================================
   return (
-    <div className="app">
-      {/* 🔹 Global Navbar */}
-      <Navbar />
+    <BrowserRouter>
+      <div className="app">
+        <Sidebar />
 
-      {/* 🔹 Main Area - Full Width */}
-      <div className="main">
-        <Topbar />
+        <div className="main">
+          <Navbar />
 
-        <div className="content">
-          <Dashboard toolsCount={tools.length} />
+          <div className="content">
+            <Routes>
+              <Route path="/" element={<Dashboard toolsCount={tools.length} />} />
 
-          <section className="section">
-            <h3 style={{fontSize: '1.5rem', marginBottom: '1.5rem'}}>Werkzeuge verwalten</h3>
-            <ToolForm
-              name={name}
-              category={category}
-              location={location}
-              condition={condition}
-              setName={setName}
-              setCategory={setCategory}
-              setLocation={setLocation}
-              setCondition={setCondition}
-              onSubmit={editId ? updateTool : addTool}
-              isEditing={!!editId}
-            />
-          </section>
+              <Route
+                path="/werkzeuge"
+                element={
+                  <>
+                    <section className="section">
+                      <h3>Werkzeuge verwalten</h3>
+                      <ToolForm
+                        name={name}
+                        category={category}
+                        location={location}
+                        condition={condition}
+                        setName={setName}
+                        setCategory={setCategory}
+                        setLocation={setLocation}
+                        setCondition={setCondition}
+                        onSubmit={editId ? updateTool : addTool}
+                        isEditing={!!editId}
+                      />
+                    </section>
 
-          <section className="section">
-            <h3 style={{fontSize: '1.5rem', marginBottom: '1.5rem'}}>Alle Werkzeuge</h3>
-            <ToolList
-              tools={tools}
-              onEdit={startEdit}
-              onDelete={deleteTool}
-            />
-          </section>
+                    <section className="section">
+                      <h3>Alle Werkzeuge</h3>
+                      <ToolList
+                        tools={tools}
+                        onEdit={startEdit}
+                        onDelete={deleteTool}
+                      />
+                    </section>
+                  </>
+                }
+              />
 
+              <Route
+                path="/berichte"
+                element={
+                  <section className="page-card">
+                    <p className="page-eyebrow">Berichte</p>
+                    <h2>Auswertungen kommen hier hin</h2>
+                    <p>
+                      Spaeter kannst du hier Wartungen, Kategorien und
+                      Werkzeugbewegungen auswerten.
+                    </p>
+                  </section>
+                }
+              />
+
+              <Route
+                path="/einstellungen"
+                element={
+                  <section className="page-card">
+                    <p className="page-eyebrow">Einstellungen</p>
+                    <h2>App-Konfiguration</h2>
+                    <p>
+                      Hier ist Platz fuer Benutzerprofil, Standorte und
+                      Systemoptionen.
+                    </p>
+                  </section>
+                }
+              />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+
+          <Footer />
         </div>
-
-        <Footer />
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
 

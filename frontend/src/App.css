@@ -1,211 +1,49 @@
-/* ===== DESIGN SYSTEM ===== */
-:root {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --bg-card: #ffffff;
-  --border: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
-  --radius: 16px;
-  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ===== LAYOUT ===== */
+/* ===== LAYOUT FIX ===== */
 .app {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 .main {
-  flex: 1;
+  flex: 1; /* 🔥 DAS IST DER WICHTIGSTE FIX */
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  background: var(--bg-primary);
 }
 
 .content {
   flex: 1;
-  padding: 2.5rem;
+  padding: 2rem;
   overflow-y: auto;
 }
 
-.section {
-  margin-bottom: 3rem;
-}
-
-.section:last-child {
-  margin-bottom: 0;
-}
-
-@media (max-width: 900px) {
-  .content {
-    padding: 2rem 1.5rem;
-  }
-  
-  .main {
-    min-height: 100vh;
-  }
-}
-
-/* ===== CARDS / SECTIONS ===== */
-.card {
-  background: var(--bg-card);
-  border-radius: var(--radius);
+.page-card {
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.9)),
+    var(--bg-card);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 16px;
   box-shadow: var(--shadow-md);
-  border: 1px solid var(--border);
-  transition: var(--transition);
 }
 
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-1px);
+.page-eyebrow {
+  margin: 0 0 8px;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
-/* ===== FORM GRID ===== */
-.form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  padding: 2rem;
-  margin-bottom: 2rem;
+.page-card h2 {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 24px;
 }
 
-@media (max-width: 768px) {
-  .form {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 1.5rem;
-  }
-}
-
-/* ===== INPUTS ===== */
-input {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  font-size: 0.875rem;
-  transition: var(--transition);
-  background: var(--bg-card);
-}
-
-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
-}
-
-/* ===== BUTTONS ===== */
-button {
-  border: none;
-  border-radius: 12px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow-sm);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-button:focus {
-  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
-}
-
-.primary {
-  background: var(--accent);
-  color: white;
-}
-
-.primary:hover {
-  background: var(--accent-hover);
-}
-
-.edit {
-  background: var(--warning);
-  color: white;
-}
-
-.delete {
-  background: var(--danger);
-  color: white;
-}
-
-/* ===== TYPOGRAPHY ===== */
-h2, h3 {
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-h2 {
-  font-size: 1.75rem;
-  margin-bottom: 1rem;
-}
-
-h3 {
-  font-size: 2.25rem;
-  font-weight: 700;
-}
-
-p {
+.page-card p {
+  max-width: 620px;
+  margin: 0;
   color: var(--text-secondary);
-}
-
-/* ===== LIST ITEMS ===== */
-.item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  transition: var(--transition);
-}
-
-.tool-info h4 {
-  margin-bottom: 0.25rem;
-  font-weight: 600;
-}
-
-.tool-info p {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
-
-/* ===== UTILITIES ===== */
-.flex {
-  display: flex;
-  gap: 1rem;
-}
-
-.grid {
-  display: grid;
-  gap: 1rem;
+  line-height: 1.6;
 }

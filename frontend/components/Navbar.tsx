@@ -1,36 +1,49 @@
 import { Bell } from "lucide-react";
+import { NavLink } from "react-router-dom";
+import "./Navbar.css";
+
+const navItems = [
+  { label: "Dashboard", to: "/" },
+  { label: "Werkzeuge", to: "/werkzeuge" },
+  { label: "Berichte", to: "/berichte" },
+  { label: "Einstellungen", to: "/einstellungen" },
+];
 
 function Navbar() {
   return (
     <nav className="navbar">
-      {/* Logo */}
-      <div className="navbar-logo">
-        <div style={{width: '40px', height: '40px', background: 'linear-gradient(135deg, var(--accent), #3b82f6)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          W
-        </div>
-        <h2>WerkMeister</h2>
+      <div className="navbar-left">
+        <NavLink className="navbar-brand" to="/" aria-label="Zur Dashboard-Seite">
+          <div className="logo-box">W</div>
+          <h1 className="logo-text">WerkMeister</h1>
+        </NavLink>
       </div>
 
-      {/* Navigation */}
       <ul className="navbar-nav">
-        <li className="active">Dashboard</li>
-        <li>Werkzeuge</li>
-        <li>Berichte</li>
-        <li>Einstellungen</li>
+        {navItems.map((item) => (
+          <li key={item.to}>
+            <NavLink
+              className={({ isActive }) =>
+                `nav-item ${isActive ? "active" : ""}`
+              }
+              end={item.to === "/"}
+              to={item.to}
+            >
+              {item.label}
+            </NavLink>
+          </li>
+        ))}
       </ul>
 
-      {/* Actions */}
-      <div className="navbar-actions">
-        <button className="btn-outline" title="Benachrichtigungen">
-          <Bell size={20} />
+      <div className="navbar-right">
+        <button className="icon-btn" type="button" aria-label="Benachrichtigungen">
+          <Bell size={18} />
         </button>
-        <div className="avatar" style={{width: '36px', height: '36px'}} title="Profil">
-          A
-        </div>
+
+        <div className="avatar">A</div>
       </div>
     </nav>
   );
 }
 
 export default Navbar;
-
