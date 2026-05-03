@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import Dashboard from "../components/Dashboard";
-import ToolForm from "..//components/ToolsForm";
-import ToolList from "..//components/ToolList";
 
+// 🔹 Layout Komponenten
+import Navbar from "../components/Navbar";
+import Topbar from "../components/Topbar";
+import Footer from "../components/Footer";
+
+// 🔹 Content
+import Dashboard from "../components/Dashboard";
+import ToolForm from "../components/ToolsForm";
+import ToolList from "../components/ToolList";
+
+// 🔹 Globales CSS
+import "./App.css";
+
+
+// 🔹 TypeScript Typ für ein Tool
 type Tool = {
   id: number;
   name: string;
@@ -14,6 +24,10 @@ type Tool = {
 };
 
 function App() {
+
+  // ================================
+  // 🔹 STATE
+  // ================================
   const [tools, setTools] = useState<Tool[]>([]);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -21,37 +35,49 @@ function App() {
   const [condition, setCondition] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
 
-  const fetchTools = async () => {
+
+  // ================================
+  // 🔹 API CALLS
+  // ================================
+  const fetchToolsData = async (): Promise<Tool[]> => {
     const res = await fetch("http://127.0.0.1:8000/tools/");
     const data = await res.json();
-    setTools(data);
+    return data;
   };
 
   const addTool = async () => {
     await fetch("http://127.0.0.1:8000/tools/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ name, category, location, condition }),
     });
-    fetchTools();
+
+    fetchToolsData().then(setTools);
   };
 
   const updateTool = async () => {
     if (!editId) return;
+
     await fetch(`http://127.0.0.1:8000/tools/${editId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ name, category, location, condition }),
     });
+
     setEditId(null);
-    fetchTools();
+    fetchToolsData().then(setTools);
   };
 
   const deleteTool = async (id: number) => {
     await fetch(`http://127.0.0.1:8000/tools/${id}`, {
       method: "DELETE",
     });
-    fetchTools();
+
+    fetchToolsData().then(setTools);
   };
 
   const startEdit = (tool: Tool) => {
@@ -62,39 +88,60 @@ function App() {
     setCondition(tool.condition);
   };
 
-  useEffect(() => {
-    const loadTools = async () => {
-      const res = await fetch("http://127.0.0.1:8000/tools/");
-      const data = await res.json();
-      setTools(data);
-    };
 
-    loadTools();
+  // ================================
+  // 🔹 LOAD DATA
+  // ================================
+  useEffect(() => {
+    fetchToolsData().then(setTools);
   }, []);
 
+
+  // ================================
+  // 🔹 UI (ULTRA LAYOUT)
+  // ================================
   return (
-    <>
+    <div className="app">
+      {/* 🔹 Global Navbar */}
       <Navbar />
 
-      <Dashboard toolsCount={tools.length} />
+      {/* 🔹 Main Area - Full Width */}
+      <div className="main">
+        <Topbar />
 
-      <ToolForm
-        name={name}
-        category={category}
-        location={location}
-        condition={condition}
-        setName={setName}
-        setCategory={setCategory}
-        setLocation={setLocation}
-        setCondition={setCondition}
-        onSubmit={editId ? updateTool : addTool}
-        isEditing={!!editId}
-      />
+        <div className="content">
+          <Dashboard toolsCount={tools.length} />
 
-      <ToolList tools={tools} onEdit={startEdit} onDelete={deleteTool} />
+          <section className="section">
+            <h3 style={{fontSize: '1.5rem', marginBottom: '1.5rem'}}>Werkzeuge verwalten</h3>
+            <ToolForm
+              name={name}
+              category={category}
+              location={location}
+              condition={condition}
+              setName={setName}
+              setCategory={setCategory}
+              setLocation={setLocation}
+              setCondition={setCondition}
+              onSubmit={editId ? updateTool : addTool}
+              isEditing={!!editId}
+            />
+          </section>
 
-      <Footer />
-    </>
+          <section className="section">
+            <h3 style={{fontSize: '1.5rem', marginBottom: '1.5rem'}}>Alle Werkzeuge</h3>
+            <ToolList
+              tools={tools}
+              onEdit={startEdit}
+              onDelete={deleteTool}
+            />
+          </section>
+
+        </div>
+
+        <Footer />
+      </div>
+    </div>
   );
 }
 

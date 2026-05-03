@@ -1,3 +1,4 @@
+import "./ToolList.css";
 type Tool = {
   id: number;
   name: string;
@@ -14,13 +15,27 @@ type Props = {
 
 function ToolList({ tools, onEdit, onDelete }: Props) {
   return (
-    <ul>
+    <ul className="list">
       {tools.map((tool) => (
-        <li key={tool.id}>
-          {tool.name} - {tool.category} - {tool.location} - {tool.condition}
-
-          <button onClick={() => onEdit(tool)}>Bearbeiten</button>
-          <button onClick={() => onDelete(tool.id)}>Löschen</button>
+        <li key={tool.id} className="item card">
+          <div className="tool-info">
+            <h4>{tool.name}</h4>
+            <div className="badges">
+              <span className="badge">{tool.category}</span>
+              <span className="badge">{tool.location}</span>
+              <span className={`badge condition-${tool.condition.toLowerCase().includes('gut') ? 'good' : 'poor'}`}>
+                {tool.condition}
+              </span>
+            </div>
+          </div>
+          <div className="actions">
+            <button className="edit" onClick={() => onEdit(tool)}>
+              Bearbeiten
+            </button>
+            <button className="delete" onClick={() => onDelete(tool.id)}>
+              Löschen
+            </button>
+          </div>
         </li>
       ))}
     </ul>

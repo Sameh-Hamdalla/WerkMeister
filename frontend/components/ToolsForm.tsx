@@ -1,3 +1,5 @@
+import "./ToolsForm.css";
+
 type Props = {
   name: string;
   category: string;

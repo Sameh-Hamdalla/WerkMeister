@@ -1,0 +1,45 @@
+/* ===== TOOLS FORM ===== */
+/* Leverages global .form, input, button styles */
+
+.form {
+  /* Global form inherits most styles */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.form::before {
+  content: 'Neues Werkzeug';
+  position: absolute;
+  top: -1rem;
+  left: 2rem;
+  background: var(--bg-card);
+  padding: 0 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.form button {
+  align-self: end;
+  white-space: nowrap;
+  min-width: 140px;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .form {
+    grid-template-columns: 1fr;
+  }
+  
+  .form button {
+    width: 100%;
+    align-self: stretch;
+  }
+}
+
+/* Editing state visual */
+.form.editing::before {
+  content: 'Werkzeug bearbeiten';
+}
