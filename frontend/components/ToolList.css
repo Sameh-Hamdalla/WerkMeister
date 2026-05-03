@@ -1,4 +1,5 @@
-/* ===== TOOL LIST ===== */
+/* ===== TOOL LIST =====
+   Kartenliste fuer alle Werkzeuge inklusive Badges, Zustand und Aktionsbuttons. */
 .tool-list {
   display: grid;
   gap: 12px;

@@ -6,7 +6,7 @@ function Sidebar() {
   return (
     <aside className="sidebar">
 
-      {/* LOGO */}
+      {/* Seitenleiste fuer groessere Bildschirme. Auf kleinen Screens uebernimmt die Navbar. */}
       <div className="sidebar-header">
         <NavLink className="sidebar-brand" to="/">
           <div className="logo-box">W</div>
@@ -14,7 +14,7 @@ function Sidebar() {
         </NavLink>
       </div>
 
-      {/* NAV */}
+      {/* NavLink markiert den aktiven Menuepunkt automatisch mit der Klasse "active". */}
       <nav className="sidebar-nav">
         <ul>
           <li>

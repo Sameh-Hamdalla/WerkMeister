@@ -1,22 +1,20 @@
-from fastapi import FastAPI
 from datetime import date
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect, text
 
-# CORS (für React wichtig!)
-from fastapi.middleware.cors import CORSMiddleware
-
-# DB Setup
 import models
 from database import engine
-
-# Router importieren
 from routers import tools
 
-# Tabellen erstellen
+# Erstellt Tabellen, falls die SQLite-Datei noch leer ist.
 models.Base.metadata.create_all(bind=engine)
 
 
 def migrate_tools_table():
+    # Kleine Migration fuer bestehende Datenbanken: Wenn alte DB-Dateien
+    # die neuen Datumsspalten noch nicht haben, werden sie automatisch ergaenzt.
     inspector = inspect(engine)
 
     if "tools" not in inspector.get_table_names():
@@ -44,17 +42,17 @@ def migrate_tools_table():
 
 migrate_tools_table()
 
-# App erstellen
+# FastAPI-App mit Titel fuer Swagger UI (/docs).
 app = FastAPI(title="WerkMeister API")
 
-# CORS aktivieren
+# In der Entwicklung sind alle Origins erlaubt. Fuer Produktion besser einschraenken.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # später einschränken!
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Router einbinden
+# Bindet die Werkzeug-Routen in die App ein.
 app.include_router(tools.router)

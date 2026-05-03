@@ -1,4 +1,5 @@
-/* ===== TOOLS FORM ===== */
+/* ===== TOOLS FORM =====
+   Eingabeformular fuer neue Werkzeuge und Bearbeitung vorhandener Eintraege. */
 .tool-form {
   display: grid;
   gap: 18px;

@@ -1,31 +1,29 @@
-# Session für DB Zugriff
 from sqlalchemy.orm import Session
 
-# unsere Tabelle
 import models
 
 
-# ➕ Tool erstellen
 def create_tool(db: Session, tool_data: dict):
-    tool = models.Tool(**tool_data)  # dict → DB Objekt
+    # Erstellt aus den validierten API-Daten ein SQLAlchemy-Objekt.
+    tool = models.Tool(**tool_data)
     db.add(tool)
     db.commit()
-    db.refresh(tool)  # lädt neue ID
+    db.refresh(tool)  # Laedt die von SQLite erzeugte ID in das Objekt.
     return tool
 
 
-# 📋 Alle Tools holen
 def get_tools(db: Session):
+    # Neueste Eintraege stehen zuerst, damit Dashboard und Liste aktuell wirken.
     return db.query(models.Tool).order_by(models.Tool.id.desc()).all()
 
 
-# 🔍 Einzelnes Tool
 def get_tool(db: Session, tool_id: int):
+    # Sucht genau ein Werkzeug per Primaerschluessel.
     return db.query(models.Tool).filter(models.Tool.id == tool_id).first()
 
 
-# ✏️ Tool updaten
 def update_tool(db: Session, tool_id: int, data: dict):
+    # Erst laden, dann alle uebergebenen Felder auf dem bestehenden Datensatz setzen.
     tool = get_tool(db, tool_id)
 
     if not tool:
@@ -39,8 +37,8 @@ def update_tool(db: Session, tool_id: int, data: dict):
     return tool
 
 
-# ❌ Tool löschen
 def delete_tool(db: Session, tool_id: int):
+    # Gibt None zurueck, wenn die ID nicht existiert. Der Router macht daraus 404.
     tool = get_tool(db, tool_id)
 
     if not tool:

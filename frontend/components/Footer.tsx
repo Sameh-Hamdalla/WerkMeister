@@ -5,6 +5,7 @@ function Footer() {
   return (
     <footer className="footer">
       <div className="footer-content">
+        {/* Markenbereich der App bleibt links sichtbar. */}
         <div className="footer-brand">
           <div className="footer-logo" aria-hidden="true">
             <Wrench size={18} />
@@ -15,6 +16,7 @@ function Footer() {
           </div>
         </div>
 
+        {/* Rechtliche Links plus Entwicklerlink. HAMDALLA WEB fuehrt zur Homepage. */}
         <ul className="footer-links">
           <li>
             <a href="#">
@@ -41,6 +43,7 @@ function Footer() {
           </li>
         </ul>
 
+        {/* Jahresangabe separat, damit sie im Layout frei positioniert werden kann. */}
         <span className="footer-copy">&copy; 2026</span>
       </div>
     </footer>

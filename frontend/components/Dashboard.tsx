@@ -12,6 +12,8 @@ import {
   Wrench,
 } from "lucide-react";
 
+// Dashboard bekommt die Daten aus App.tsx. Es nutzt keine Demo-Daten,
+// sondern berechnet alle Kennzahlen aus dieser Werkzeugliste.
 type Tool = {
   id: number;
   name: string;
@@ -26,8 +28,10 @@ type Props = {
   tools: Tool[];
 };
 
+// Kleine Hilfsfunktion, damit Vergleiche nicht an Gross-/Kleinschreibung scheitern.
 const normalize = (value: string) => value.trim().toLowerCase();
 
+// Entscheidet anhand des Zustandstextes, ob ein Werkzeug im Wartungsbereich landet.
 const isMaintenanceCondition = (condition: string) => {
   const value = normalize(condition);
 
@@ -42,6 +46,7 @@ const isMaintenanceCondition = (condition: string) => {
 };
 
 function Dashboard({ tools }: Props) {
+  // Grundkennzahlen fuer die Karten im oberen Dashboard-Bereich.
   const toolsCount = tools.length;
   const maintenanceTools = tools.filter((tool) =>
     isMaintenanceCondition(tool.condition)
@@ -51,10 +56,12 @@ function Dashboard({ tools }: Props) {
   const readiness =
     toolsCount > 0 ? Math.round((activeTools / toolsCount) * 100) : 0;
 
+  // Anzahl unterschiedlicher Kategorien. Leere Werte werden ignoriert.
   const categories = new Set(
     tools.map((tool) => normalize(tool.category)).filter(Boolean)
   ).size;
 
+  // Zaehlt Werkzeuge pro Standort fuer die Balkenansicht.
   const locationCounts = tools.reduce<Record<string, number>>((result, tool) => {
     const location = tool.location.trim() || "Ohne Standort";
     result[location] = (result[location] ?? 0) + 1;
@@ -65,6 +72,7 @@ function Dashboard({ tools }: Props) {
     .sort((first, second) => second[1] - first[1])
     .slice(0, 3);
 
+  // Neueste Werkzeuge werden nach Eingangsdatum und danach nach ID sortiert.
   const recentTools = [...tools]
     .sort((first, second) => {
       const dateCompare = second.received_date.localeCompare(first.received_date);
@@ -82,6 +90,7 @@ function Dashboard({ tools }: Props) {
     .sort()
     .at(-1);
 
+  // Diese Struktur macht das Rendern der Statistik-Karten kurz und wiederverwendbar.
   const stats = [
     {
       label: "Gesamtbestand",

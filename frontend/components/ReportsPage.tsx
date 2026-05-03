@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+// Gleicher Werkzeugtyp wie in App.tsx. Die Berichte lesen nur diese Daten
+// und erzeugen daraus Tabellen, CSV-Dateien oder druckbare PDF-Ansichten.
 type Tool = {
   id: number;
   name: string;
@@ -25,9 +27,11 @@ type Props = {
   tools: Tool[];
 };
 
+// Erlaubte Berichtstypen. Dadurch kann TypeScript Tippfehler bei IDs erkennen.
 type ReportType = "inventory" | "maintenance" | "locations" | "categories" | "incoming";
 type ReportRow = Record<string, string | number>;
 
+// Konfiguration der Berichtskarten: Text, Beschreibung und Icon kommen von hier.
 const reportOptions = [
   {
     id: "inventory",
@@ -66,6 +70,7 @@ const reportOptions = [
   icon: typeof Package;
 }>;
 
+// Zustandstexte werden bewusst flexibel erkannt, weil Benutzer freie Texte eingeben.
 const isMaintenanceCondition = (condition: string) => {
   const value = condition.trim().toLowerCase();
 
@@ -79,9 +84,12 @@ const isMaintenanceCondition = (condition: string) => {
   );
 };
 
+// Ein Werkzeug erscheint im Wartungsbericht, wenn ein Termin gesetzt ist
+// oder der Zustand auf Wartung/Reparatur hinweist.
 const hasMaintenanceReportEntry = (tool: Tool) =>
   Boolean(tool.maintenance_date) || isMaintenanceCondition(tool.condition);
 
+// Zaehlt Werkzeuge nach Kategorie oder Standort fuer Sammelberichte.
 const countBy = (tools: Tool[], key: "category" | "location") => {
   return Object.entries(
     tools.reduce<Record<string, number>>((result, tool) => {
@@ -92,6 +100,7 @@ const countBy = (tools: Tool[], key: "category" | "location") => {
   ).sort((first, second) => second[1] - first[1]);
 };
 
+// CSV- und HTML-Escaping schuetzen die exportierten Inhalte vor kaputten Tabellen.
 const escapeCsv = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
 
 const escapeHtml = (value: string | number) =>
@@ -101,6 +110,7 @@ const escapeHtml = (value: string | number) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
+// Baut fuer jeden Berichtstyp die passenden Tabellenzeilen aus den Werkzeugdaten.
 const getRowsForReport = (reportType: ReportType, tools: Tool[]): ReportRow[] => {
   if (reportType === "maintenance") {
     return tools
@@ -159,6 +169,7 @@ const getRowsForReport = (reportType: ReportType, tools: Tool[]): ReportRow[] =>
   }));
 };
 
+// Browser-Download fuer CSV-Dateien ohne zusaetzliche Bibliothek.
 const downloadCsv = (filename: string, csv: string) => {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -170,6 +181,7 @@ const downloadCsv = (filename: string, csv: string) => {
   URL.revokeObjectURL(url);
 };
 
+// HTML-Tabelle fuer die Druckansicht. Der Browser kann diese Ansicht als PDF speichern.
 const buildReportTableHtml = (title: string, rows: ReportRow[]) => {
   if (rows.length === 0) {
     return `
@@ -203,6 +215,7 @@ const buildReportTableHtml = (title: string, rows: ReportRow[]) => {
   `;
 };
 
+// Oeffnet ein separates Druckfenster. Ueber den Druckdialog kann der Benutzer PDF waehlen.
 const openPrintWindow = (title: string, bodyContent: string) => {
   const printWindow = window.open("", "_blank", "width=900,height=700");
 
@@ -276,9 +289,12 @@ const openPrintWindow = (title: string, bodyContent: string) => {
 };
 
 function ReportsPage({ tools }: Props) {
+  // Merkt sich, welcher Bericht gerade ausgewaehlt ist.
   const [selectedReport, setSelectedReport] = useState<ReportType>("inventory");
 
   const selectedOption = reportOptions.find((report) => report.id === selectedReport);
+
+  // Kennzahlen oben auf der Berichte-Seite.
   const maintenanceCount = tools.filter(hasMaintenanceReportEntry).length;
   const categoriesCount = countBy(tools, "category").length;
   const locationsCount = countBy(tools, "location").length;
@@ -317,10 +333,12 @@ function ReportsPage({ tools }: Props) {
     },
   ];
 
+  // Tabellenzeilen werden nur neu berechnet, wenn Daten oder Berichtstyp wechseln.
   const rows = useMemo(() => {
     return getRowsForReport(selectedReport, tools);
   }, [selectedReport, tools]);
 
+  // Exportiert den aktuell ausgewaehlten Bericht als CSV.
   const downloadReport = () => {
     if (rows.length === 0) {
       return;
@@ -337,6 +355,7 @@ function ReportsPage({ tools }: Props) {
     downloadCsv(`${selectedReport}-bericht.csv`, csv);
   };
 
+  // Erzeugt fuer den aktuellen Bericht eine druckbare PDF-Vorlage.
   const printReportAsPdf = () => {
     if (rows.length === 0) {
       return;
@@ -348,6 +367,7 @@ function ReportsPage({ tools }: Props) {
     );
   };
 
+  // Kombiniert alle Berichtstypen in einer einzigen PDF-Druckansicht.
   const printAllReportsAsPdf = () => {
     const sections = reportOptions
       .map((report) =>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
@@ -13,6 +13,8 @@ import ToolList from "../components/ToolList";
 
 import "./App.css";
 
+// Gemeinsamer Datentyp fuer Werkzeugdaten, so wie sie aus der API kommen.
+// Die Feldnamen mit Unterstrich passen direkt zum Backend und zur Datenbank.
 type Tool = {
   id: number;
   name: string;
@@ -23,10 +25,17 @@ type Tool = {
   maintenance_date?: string | null;
 };
 
+// Zentrale API-Adresse. Alle Werkzeug-Aktionen laufen ueber diese FastAPI-Route.
 const API_URL = "http://127.0.0.1:8000/api/tools";
 
 function App() {
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const formSectionRef = useRef<HTMLElement | null>(null);
+
+  // Hauptdaten der Anwendung. Dashboard, Berichte und Liste lesen alle aus diesem State.
   const [tools, setTools] = useState<Tool[]>([]);
+
+  // Formular-State fuer "Werkzeug hinzufuegen" und "Werkzeug bearbeiten".
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
@@ -37,6 +46,8 @@ function App() {
   const [maintenanceDate, setMaintenanceDate] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
 
+  // Laedt Werkzeuge robust aus dem Backend. Bei Fehlern wird eine leere Liste genutzt,
+  // damit die UI nicht abstuerzt, wenn der Server kurz nicht erreichbar ist.
   const fetchToolsData = async (): Promise<Tool[]> => {
     try {
       const res = await fetch(`${API_URL}/`);
@@ -52,6 +63,7 @@ function App() {
     }
   };
 
+  // Erstellt ein neues Werkzeug in der Datenbank und leert danach das Formular.
   const addTool = async () => {
     const res = await fetch(`${API_URL}/`, {
       method: "POST",
@@ -79,6 +91,7 @@ function App() {
     fetchToolsData().then(setTools);
   };
 
+  // Aktualisiert das Werkzeug, dessen ID vorher ueber startEdit gesetzt wurde.
   const updateTool = async () => {
     if (!editId) return;
 
@@ -109,6 +122,7 @@ function App() {
     fetchToolsData().then(setTools);
   };
 
+  // Entfernt ein Werkzeug und laedt danach die aktuelle DB-Liste neu.
   const deleteTool = async (id: number) => {
     await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
@@ -116,6 +130,41 @@ function App() {
     fetchToolsData().then(setTools);
   };
 
+  // Scrollt langsam innerhalb des Hauptbereichs zum Formular.
+  const scrollToFormSlowly = () => {
+    const container = contentRef.current;
+    const target = formSectionRef.current;
+
+    if (!container || !target) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const startTop = container.scrollTop;
+    const targetTop = startTop + targetRect.top - containerRect.top - 18;
+    const distance = targetTop - startTop;
+    const duration = 950;
+    const startTime = performance.now();
+
+    const easeInOut = (progress: number) =>
+      progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      container.scrollTop = startTop + distance * easeInOut(progress);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  };
+
+  // Fuellt das Formular mit vorhandenen Daten, damit ein Eintrag bearbeitet werden kann.
   const startEdit = (tool: Tool) => {
     setEditId(tool.id);
     setName(tool.name);
@@ -124,8 +173,12 @@ function App() {
     setCondition(tool.condition);
     setReceivedDate(tool.received_date);
     setMaintenanceDate(tool.maintenance_date ?? "");
+
+    // Nach dem Fuellen der Felder kurz warten, damit React zuerst rendern kann.
+    window.setTimeout(scrollToFormSlowly, 80);
   };
 
+  // Beim ersten Laden der App werden die vorhandenen Werkzeuge aus der DB geholt.
   useEffect(() => {
     fetchToolsData().then(setTools);
   }, []);
@@ -138,7 +191,8 @@ function App() {
         <div className="main">
           <Navbar />
 
-          <div className="content">
+          <div className="content" ref={contentRef}>
+            {/* React Router entscheidet hier, welche Seite im Hauptbereich angezeigt wird. */}
             <Routes>
               <Route path="/" element={<Dashboard tools={tools} />} />
 
@@ -146,7 +200,7 @@ function App() {
                 path="/werkzeuge"
                 element={
                   <div className="tools-page">
-                    <section className="section">
+                    <section className="section" ref={formSectionRef}>
                       <h3>Werkzeuge verwalten</h3>
                       <ToolForm
                         name={name}

@@ -1,4 +1,5 @@
-/* ===== DASHBOARD ===== */
+/* ===== DASHBOARD =====
+   Styling fuer Kennzahlen, Wartungsuebersicht, Standortverteilung und letzte Werkzeuge. */
 .dashboard {
   display: grid;
   gap: 24px;

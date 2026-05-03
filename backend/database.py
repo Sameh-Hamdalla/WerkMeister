@@ -1,32 +1,29 @@
-# Verbindung zur Datenbank herstellen
 from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Tools für Sessions und Models
-from sqlalchemy.orm import sessionmaker, declarative_base
-
-# SQLite Datei (wird automatisch erstellt)
+# SQLite-Datei fuer die Werkzeugdaten. Sie wird automatisch erstellt,
+# sobald FastAPI zum ersten Mal startet.
 DATABASE_URL = "sqlite:///./tools.db"
 
-# Engine = zentrale Verbindung zur DB
+# Die Engine ist die zentrale Verbindungsschicht zur Datenbank.
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},  # wichtig für SQLite + FastAPI
+    connect_args={"check_same_thread": False},  # Notwendig bei SQLite + FastAPI.
 )
 
-# Session = einzelne Verbindung pro Request
+# Pro Request wird eine eigene Session genutzt. Commit passiert bewusst im CRUD-Code.
 SessionLocal = sessionmaker(
-    autocommit=False,  # wir entscheiden selbst wann gespeichert wird
-    autoflush=False,  # verhindert automatische DB Aktionen
+    autocommit=False,
+    autoflush=False,
     bind=engine,
 )
 
-# Base = Grundlage für alle Tabellen (Models)
+# Alle SQLAlchemy-Modelle erben von Base, damit Tabellen erzeugt werden koennen.
 Base = declarative_base()
 
 
-# Dependency für FastAPI
-# 👉 sorgt dafür, dass jede Anfrage eine eigene DB Verbindung bekommt
 def get_db():
+    # FastAPI-Dependency: oeffnet eine DB-Session und schliesst sie nach dem Request.
     db = SessionLocal()
     try:
         yield db

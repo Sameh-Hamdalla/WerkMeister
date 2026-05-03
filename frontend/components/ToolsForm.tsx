@@ -2,6 +2,8 @@ import "./ToolsForm.css";
 import { Activity, CalendarDays, MapPin, Package, Plus, Save, Tag } from "lucide-react";
 import type { FormEvent } from "react";
 
+// Das Formular ist kontrolliert: App.tsx besitzt den State und reicht Werte
+// sowie Setter hier hinein. Dadurch kann dasselbe Formular fuer Neu/Edit dienen.
 type Props = {
   name: string;
   category: string;
@@ -35,6 +37,7 @@ function ToolForm({
   onSubmit,
   isEditing,
 }: Props) {
+  // Verhindert das normale Neuladen der Seite und ruft danach addTool/updateTool auf.
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSubmit();
@@ -47,6 +50,7 @@ function ToolForm({
     >
       <div className="tool-form-header">
         <div className="tool-form-icon">
+          {/* Das Icon macht sofort sichtbar, ob gerade erstellt oder bearbeitet wird. */}
           {isEditing ? <Save size={20} /> : <Plus size={20} />}
         </div>
         <div>
@@ -59,6 +63,7 @@ function ToolForm({
         </div>
       </div>
 
+      {/* Alle Eingaben schreiben direkt in den State von App.tsx. */}
       <div className="tool-form-grid">
         <label className="tool-field">
           <span>Name</span>

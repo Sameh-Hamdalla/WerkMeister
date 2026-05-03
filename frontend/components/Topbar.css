@@ -1,4 +1,5 @@
-/* ===== TOPBAR ===== */
+/* ===== TOPBAR =====
+   Alter/optionaler Kopfbereich, falls Topbar.tsx statt Navbar genutzt wird. */
 .topbar {
   height: 80px;
   background: var(--bg-card);

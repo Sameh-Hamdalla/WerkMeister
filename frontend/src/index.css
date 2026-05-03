@@ -1,4 +1,5 @@
-/* Reset + Grundstil */
+/* Reset + Grundstil
+   Globale Basiswerte fuer Body, Schrift, Farben und Design-Variablen. */
 
 body {
   margin: 0;

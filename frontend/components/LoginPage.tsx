@@ -3,9 +3,11 @@ import { Lock, LogIn, Mail, UserRound } from "lucide-react";
 import { useState } from "react";
 
 function LoginPage() {
+  // Lokaler Formular-State fuer die Login-Seite. Backend-Login ist noch nicht angebunden.
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Verhindert Seiten-Reload; hier kann spaeter die echte Login-API aufgerufen werden.
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   };

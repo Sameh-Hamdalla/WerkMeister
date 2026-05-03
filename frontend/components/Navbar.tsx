@@ -3,6 +3,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import "./Navbar.css";
 
+// Alle Hauptseiten der App. NavLink setzt automatisch die aktive Klasse.
 const navItems = [
   { label: "Dashboard", to: "/" },
   { label: "Werkzeuge", to: "/werkzeuge" },
@@ -11,10 +12,12 @@ const navItems = [
 ];
 
 function Navbar() {
+  // Kleines Login-Popup in der Navbar. Es ist aktuell nur UI und noch keine echte Authentifizierung.
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Platzhalter fuer spaetere Login-Logik. Aktuell bleibt die Seite ohne Reload stehen.
   const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   };
@@ -28,6 +31,7 @@ function Navbar() {
         </NavLink>
       </div>
 
+      {/* Desktop- und Mobile-Navigation teilen sich dieselben Routen. */}
       <ul className="navbar-nav">
         {navItems.map((item) => (
           <li key={item.to}>
@@ -59,6 +63,7 @@ function Navbar() {
           A
         </button>
 
+        {/* Das Popup wird per A-Button ein- und ausgeblendet. */}
         {isLoginOpen && (
           <div className="navbar-login" role="dialog" aria-label="Zugangsdaten">
             <div className="navbar-login-header">

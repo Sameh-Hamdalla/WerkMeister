@@ -1,33 +1,28 @@
-# Spalten-Typen importieren
 from datetime import date
 
 from sqlalchemy import Column, Integer, String
 
-# Base holen (Grundlage für Tabellen)
 from database import Base
 
 
-# Diese Klasse wird zur Tabelle "tools"
 class Tool(Base):
+    # Diese Klasse wird von SQLAlchemy als Tabelle "tools" in SQLite abgebildet.
     __tablename__ = "tools"
 
-    # eindeutige ID (Primärschlüssel)
+    # Primaerschluessel: eindeutige ID fuer Bearbeiten, Loeschen und Sortierung.
     id = Column(Integer, primary_key=True, index=True)
 
-    # Name vom Werkzeug
+    # Stammdaten, die im Frontend-Formular gepflegt werden.
     name = Column(String(100), nullable=False, index=True)
-
-    # Kategorie (z.B. Bohrer)
     category = Column(String(100), nullable=False, index=True)
-
-    # Ort (z.B. Garage)
     location = Column(String(100), nullable=False)
-
-    # Zustand (z.B. gut, kaputt)
     condition = Column(String(50), nullable=False)
 
-    # Eingangsdatum (z.B. 2026-05-03)
-    received_date = Column(String(10), nullable=False, default=lambda: date.today().isoformat())
+    # Eingangsdatum im ISO-Format YYYY-MM-DD. String reicht hier, weil keine
+    # komplexen Datumsberechnungen in der Datenbank noetig sind.
+    received_date = Column(
+        String(10), nullable=False, default=lambda: date.today().isoformat()
+    )
 
-    # Wartungstermin (z.B. 2026-06-15)
+    # Optionaler Wartungstermin. Wenn er leer ist, steht in der DB NULL.
     maintenance_date = Column(String(10), nullable=True)

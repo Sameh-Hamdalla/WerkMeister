@@ -1,6 +1,7 @@
 import "./ToolList.css";
 import { CalendarDays, MapPin, Pencil, Tag, Trash2, Wrench } from "lucide-react";
 
+// Werkzeugdaten kommen von App.tsx, nachdem sie aus dem Backend geladen wurden.
 type Tool = {
   id: number;
   name: string;
@@ -17,6 +18,7 @@ type Props = {
   onDelete: (id: number) => void;
 };
 
+// Wandelt freie Zustandstexte in CSS-Klassen um, damit die Badge-Farbe passt.
 const getConditionClass = (condition: string) => {
   const normalized = condition.toLowerCase();
 
@@ -32,6 +34,7 @@ const getConditionClass = (condition: string) => {
 };
 
 function ToolList({ tools, onEdit, onDelete }: Props) {
+  // Freundlicher Leerzustand, wenn noch keine Daten in der Datenbank liegen.
   if (tools.length === 0) {
     return (
       <div className="tool-empty">
@@ -49,6 +52,7 @@ function ToolList({ tools, onEdit, onDelete }: Props) {
   return (
     <div className="tool-list">
       {tools.map((tool) => (
+        // Jede Karte steht fuer einen Datensatz aus der tools-Tabelle.
         <div key={tool.id} className="tool-item">
           <div className="tool-avatar" aria-hidden="true">
             {tool.name.charAt(0).toUpperCase()}
@@ -94,6 +98,7 @@ function ToolList({ tools, onEdit, onDelete }: Props) {
               aria-label={`${tool.name} bearbeiten`}
               title="Bearbeiten"
             >
+              {/* Bearbeiten fuellt das Formular mit genau diesem Werkzeug. */}
               <Pencil size={17} />
             </button>
 
@@ -103,6 +108,7 @@ function ToolList({ tools, onEdit, onDelete }: Props) {
               aria-label={`${tool.name} loeschen`}
               title="Loeschen"
             >
+              {/* Loeschen ruft die DELETE-Route im Backend auf. */}
               <Trash2 size={17} />
             </button>
           </div>

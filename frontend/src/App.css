@@ -1,4 +1,6 @@
-/* ===== LAYOUT FIX ===== */
+/* ===== APP SHELL =====
+   Grundlayout der Anwendung: Sidebar links, Navbar oben, Content in der Mitte
+   und Footer unten. .content ist scrollbar, damit Navbar/Footer stehen bleiben. */
 .app {
   display: flex;
   height: 100vh;

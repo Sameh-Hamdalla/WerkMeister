@@ -1,4 +1,5 @@
-/* ===== NAVBAR BASE ===== */
+/* ===== NAVBAR BASE =====
+   Kopfbereich mit Logo, Seitenlinks, Benachrichtigung und Login-Popup. */
 .navbar {
   height: 70px;
   padding: 0 2rem;

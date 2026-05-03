@@ -1,4 +1,5 @@
-/* ===== LOGIN PAGE ===== */
+/* ===== LOGIN PAGE =====
+   Separates Login-Layout fuer die /login Route. */
 .login-page {
   min-height: 100%;
   display: grid;
