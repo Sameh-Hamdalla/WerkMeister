@@ -12,27 +12,70 @@ import {
   Wrench,
 } from "lucide-react";
 
-type Props = {
-  toolsCount: number;
+type Tool = {
+  id: number;
+  name: string;
+  category: string;
+  location: string;
+  condition: string;
+  received_date: string;
 };
 
-const recentTools = [
-  { name: "Hammer Pro", category: "Handwerkzeug", location: "Lager A" },
-  { name: "Bohrer Set", category: "Elektrowerkzeug", location: "Werkstatt" },
-  { name: "Schraubendreher", category: "Handwerkzeug", location: "Servicewagen" },
-];
+type Props = {
+  tools: Tool[];
+};
 
-function Dashboard({ toolsCount }: Props) {
-  const activeTools = Math.round(toolsCount * 0.85);
-  const maintenanceDue = toolsCount > 0 ? Math.max(1, Math.round(toolsCount * 0.12)) : 0;
-  const categories = toolsCount > 0 ? Math.min(12, Math.max(1, Math.ceil(toolsCount / 2))) : 0;
-  const readiness = toolsCount > 0 ? Math.min(98, Math.round((activeTools / toolsCount) * 100)) : 0;
+const normalize = (value: string) => value.trim().toLowerCase();
+
+const isMaintenanceCondition = (condition: string) => {
+  const value = normalize(condition);
+
+  return (
+    value.includes("wart") ||
+    value.includes("defekt") ||
+    value.includes("kaputt") ||
+    value.includes("schlecht") ||
+    value.includes("repar") ||
+    value.includes("mittel")
+  );
+};
+
+function Dashboard({ tools }: Props) {
+  const toolsCount = tools.length;
+  const maintenanceTools = tools.filter((tool) =>
+    isMaintenanceCondition(tool.condition)
+  );
+  const maintenanceDue = maintenanceTools.length;
+  const activeTools = toolsCount - maintenanceDue;
+  const readiness =
+    toolsCount > 0 ? Math.round((activeTools / toolsCount) * 100) : 0;
+
+  const categories = new Set(
+    tools.map((tool) => normalize(tool.category)).filter(Boolean)
+  ).size;
+
+  const locationCounts = tools.reduce<Record<string, number>>((result, tool) => {
+    const location = tool.location.trim() || "Ohne Standort";
+    result[location] = (result[location] ?? 0) + 1;
+    return result;
+  }, {});
+
+  const topLocations = Object.entries(locationCounts)
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, 3);
+
+  const recentTools = [...tools].sort((a, b) => b.id - a.id).slice(0, 3);
+  const latestReceivedDate = tools
+    .map((tool) => tool.received_date)
+    .filter(Boolean)
+    .sort()
+    .at(-1);
 
   const stats = [
     {
       label: "Gesamtbestand",
       value: toolsCount,
-      hint: "Werkzeuge im System",
+      hint: latestReceivedDate ? `Letzter Eingang: ${latestReceivedDate}` : "Werkzeuge im System",
       icon: Wrench,
       tone: "blue",
     },
@@ -46,14 +89,14 @@ function Dashboard({ toolsCount }: Props) {
     {
       label: "Kategorien",
       value: categories,
-      hint: "Sortierte Gruppen",
+      hint: "Aus deinen Werkzeugdaten",
       icon: Package,
       tone: "orange",
     },
     {
       label: "Wartung faellig",
       value: maintenanceDue,
-      hint: "Prioritaet pruefen",
+      hint: "Nach Zustand berechnet",
       icon: CalendarClock,
       tone: "red",
     },
@@ -69,15 +112,17 @@ function Dashboard({ toolsCount }: Props) {
           </span>
           <h2>Alles im Blick, bevor der Tag loslegt.</h2>
           <p>
-            Übersicht über Bestand, Verfuegbarkeit und anstehende Wartungen
-            deiner Werkzeuge.
+            Die Statistik wird automatisch aus deinen erfassten Werkzeugen,
+            Kategorien, Standorten und Zustaenden berechnet.
           </p>
         </div>
 
         <div className="hero-metric">
           <span>Bereitschaft</span>
           <strong>{readiness}%</strong>
-          <small>{activeTools} von {toolsCount} aktiv</small>
+          <small>
+            {activeTools} von {toolsCount} aktiv
+          </small>
         </div>
       </section>
 
@@ -145,23 +190,25 @@ function Dashboard({ toolsCount }: Props) {
             <MapPin size={20} />
           </div>
 
-          <div className="location-bars">
-            <div>
-              <span>Lager A</span>
-              <strong>46%</strong>
-              <div className="bar"><span style={{ width: "46%" }} /></div>
+          {topLocations.length > 0 ? (
+            <div className="location-bars">
+              {topLocations.map(([location, count]) => {
+                const percent = Math.round((count / toolsCount) * 100);
+
+                return (
+                  <div key={location}>
+                    <span>{location}</span>
+                    <strong>{percent}%</strong>
+                    <div className="bar">
+                      <span style={{ width: `${percent}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div>
-              <span>Werkstatt</span>
-              <strong>34%</strong>
-              <div className="bar"><span style={{ width: "34%" }} /></div>
-            </div>
-            <div>
-              <span>Servicewagen</span>
-              <strong>20%</strong>
-              <div className="bar"><span style={{ width: "20%" }} /></div>
-            </div>
-          </div>
+          ) : (
+            <p className="dashboard-empty">Noch keine Standortdaten vorhanden.</p>
+          )}
         </article>
       </section>
 
@@ -174,21 +221,28 @@ function Dashboard({ toolsCount }: Props) {
           <ClipboardList size={20} />
         </div>
 
-        <div className="tools-grid">
-          {recentTools.map((tool) => (
-            <article key={tool.name} className="tool-card">
-              <div className="tool-card-icon">
-                <Wrench size={18} />
-              </div>
-              <div>
-                <h4>{tool.name}</h4>
-                <span>{tool.category}</span>
-                <p>{tool.location}</p>
-              </div>
-              <TrendingUp size={17} />
-            </article>
-          ))}
-        </div>
+        {recentTools.length > 0 ? (
+          <div className="tools-grid">
+            {recentTools.map((tool) => (
+              <article key={tool.id} className="tool-card">
+                <div className="tool-card-icon">
+                  <Wrench size={18} />
+                </div>
+                <div>
+                  <h4>{tool.name}</h4>
+                  <span>{tool.category}</span>
+                  <p>{tool.location} · Eingang {tool.received_date}</p>
+                </div>
+                <TrendingUp size={17} />
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="dashboard-empty">
+            Erfasse dein erstes Werkzeug, dann erscheinen hier die neuesten
+            Eintraege.
+          </p>
+        )}
       </section>
     </div>
   );

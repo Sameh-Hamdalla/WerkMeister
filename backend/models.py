@@ -1,4 +1,6 @@
 # Spalten-Typen importieren
+from datetime import date
+
 from sqlalchemy import Column, Integer, String
 
 # Base holen (Grundlage für Tabellen)
@@ -23,3 +25,6 @@ class Tool(Base):
 
     # Zustand (z.B. gut, kaputt)
     condition = Column(String(50), nullable=False)
+
+    # Eingangsdatum (z.B. 2026-05-03)
+    received_date = Column(String(10), nullable=False, default=lambda: date.today().isoformat())

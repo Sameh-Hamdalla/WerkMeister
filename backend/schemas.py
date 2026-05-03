@@ -8,11 +8,11 @@ class ToolCreate(BaseModel):
     category: str = Field(..., min_length=2)
     location: str = Field(..., min_length=2)
     condition: str = Field(..., min_length=2)
+    received_date: str = Field(..., min_length=10, max_length=10)
 
 
 # Daten die zurückgegeben werden (inkl. ID)
 class ToolResponse(ToolCreate):
     id: int
 
-    class Config:
-        orm_mode = True  # erlaubt Nutzung von SQLAlchemy Objekten
+    model_config = {"from_attributes": True}

@@ -1,5 +1,5 @@
 import "./ToolsForm.css";
-import { Activity, MapPin, Package, Plus, Save, Tag } from "lucide-react";
+import { Activity, CalendarDays, MapPin, Package, Plus, Save, Tag } from "lucide-react";
 import type { FormEvent } from "react";
 
 type Props = {
@@ -7,10 +7,12 @@ type Props = {
   category: string;
   location: string;
   condition: string;
+  receivedDate: string;
   setName: (v: string) => void;
   setCategory: (v: string) => void;
   setLocation: (v: string) => void;
   setCondition: (v: string) => void;
+  setReceivedDate: (v: string) => void;
   onSubmit: () => void;
   isEditing: boolean;
 };
@@ -20,10 +22,12 @@ function ToolForm({
   category,
   location,
   condition,
+  receivedDate,
   setName,
   setCategory,
   setLocation,
   setCondition,
+  setReceivedDate,
   onSubmit,
   isEditing,
 }: Props) {
@@ -46,7 +50,7 @@ function ToolForm({
           <p>
             {isEditing
               ? "Passe die Details an und speichere die Aenderung."
-              : "Erfasse Name, Kategorie, Standort und Zustand."}
+              : "Erfasse Name, Kategorie, Standort, Zustand und Eingang."}
           </p>
         </div>
       </div>
@@ -96,6 +100,18 @@ function ToolForm({
               value={condition}
               onChange={(e) => setCondition(e.target.value)}
               placeholder="z. B. Gut"
+            />
+          </div>
+        </label>
+
+        <label className="tool-field">
+          <span>Eingang</span>
+          <div className="tool-input">
+            <CalendarDays size={17} />
+            <input
+              type="date"
+              value={receivedDate}
+              onChange={(e) => setReceivedDate(e.target.value)}
             />
           </div>
         </label>

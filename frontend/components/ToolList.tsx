@@ -1,5 +1,5 @@
 import "./ToolList.css";
-import { MapPin, Pencil, Tag, Trash2, Wrench } from "lucide-react";
+import { CalendarDays, MapPin, Pencil, Tag, Trash2, Wrench } from "lucide-react";
 
 type Tool = {
   id: number;
@@ -7,6 +7,7 @@ type Tool = {
   category: string;
   location: string;
   condition: string;
+  received_date: string;
 };
 
 type Props = {
@@ -63,6 +64,10 @@ function ToolList({ tools, onEdit, onDelete }: Props) {
               <span className="badge">
                 <MapPin size={13} />
                 {tool.location}
+              </span>
+              <span className="badge">
+                <CalendarDays size={13} />
+                {tool.received_date}
               </span>
 
               <span

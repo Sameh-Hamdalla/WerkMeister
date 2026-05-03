@@ -6,6 +6,8 @@ import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
 import Dashboard from "../components/Dashboard";
+import LoginPage from "../components/LoginPage";
+import ReportsPage from "../components/ReportsPage";
 import ToolForm from "../components/ToolsForm";
 import ToolList from "../components/ToolList";
 
@@ -17,7 +19,10 @@ type Tool = {
   category: string;
   location: string;
   condition: string;
+  received_date: string;
 };
+
+const API_URL = "http://127.0.0.1:8000/api/tools";
 
 function App() {
   const [tools, setTools] = useState<Tool[]>([]);
@@ -25,37 +30,81 @@ function App() {
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
   const [condition, setCondition] = useState("");
+  const [receivedDate, setReceivedDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
   const [editId, setEditId] = useState<number | null>(null);
 
   const fetchToolsData = async (): Promise<Tool[]> => {
-    const res = await fetch("http://127.0.0.1:8000/tools/");
-    return await res.json();
+    try {
+      const res = await fetch(`${API_URL}/`);
+
+      if (!res.ok) {
+        return [];
+      }
+
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
   };
 
   const addTool = async () => {
-    await fetch("http://127.0.0.1:8000/tools/", {
+    const res = await fetch(`${API_URL}/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, category, location, condition }),
+      body: JSON.stringify({
+        name,
+        category,
+        location,
+        condition,
+        received_date: receivedDate,
+      }),
     });
+
+    if (!res.ok) {
+      return;
+    }
+
+    setName("");
+    setCategory("");
+    setLocation("");
+    setCondition("");
+    setReceivedDate(new Date().toISOString().slice(0, 10));
     fetchToolsData().then(setTools);
   };
 
   const updateTool = async () => {
     if (!editId) return;
 
-    await fetch(`http://127.0.0.1:8000/tools/${editId}`, {
+    const res = await fetch(`${API_URL}/${editId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, category, location, condition }),
+      body: JSON.stringify({
+        name,
+        category,
+        location,
+        condition,
+        received_date: receivedDate,
+      }),
     });
 
+    if (!res.ok) {
+      return;
+    }
+
     setEditId(null);
+    setName("");
+    setCategory("");
+    setLocation("");
+    setCondition("");
+    setReceivedDate(new Date().toISOString().slice(0, 10));
     fetchToolsData().then(setTools);
   };
 
   const deleteTool = async (id: number) => {
-    await fetch(`http://127.0.0.1:8000/tools/${id}`, {
+    await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
     });
     fetchToolsData().then(setTools);
@@ -67,6 +116,7 @@ function App() {
     setCategory(tool.category);
     setLocation(tool.location);
     setCondition(tool.condition);
+    setReceivedDate(tool.received_date);
   };
 
   useEffect(() => {
@@ -83,12 +133,12 @@ function App() {
 
           <div className="content">
             <Routes>
-              <Route path="/" element={<Dashboard toolsCount={tools.length} />} />
+              <Route path="/" element={<Dashboard tools={tools} />} />
 
               <Route
                 path="/werkzeuge"
                 element={
-                  <>
+                  <div className="tools-page">
                     <section className="section">
                       <h3>Werkzeuge verwalten</h3>
                       <ToolForm
@@ -96,10 +146,12 @@ function App() {
                         category={category}
                         location={location}
                         condition={condition}
+                        receivedDate={receivedDate}
                         setName={setName}
                         setCategory={setCategory}
                         setLocation={setLocation}
                         setCondition={setCondition}
+                        setReceivedDate={setReceivedDate}
                         onSubmit={editId ? updateTool : addTool}
                         isEditing={!!editId}
                       />
@@ -113,21 +165,16 @@ function App() {
                         onDelete={deleteTool}
                       />
                     </section>
-                  </>
+                  </div>
                 }
               />
+
+              <Route path="/login" element={<LoginPage />} />
 
               <Route
                 path="/berichte"
                 element={
-                  <section className="page-card">
-                    <p className="page-eyebrow">Berichte</p>
-                    <h2>Auswertungen kommen hier hin</h2>
-                    <p>
-                      Spaeter kannst du hier Wartungen, Kategorien und
-                      Werkzeugbewegungen auswerten.
-                    </p>
-                  </section>
+                  <ReportsPage tools={tools} />
                 }
               />
 

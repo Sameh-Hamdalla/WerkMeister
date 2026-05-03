@@ -47,3 +47,32 @@
   color: var(--text-secondary);
   line-height: 1.6;
 }
+
+.tools-page {
+  display: grid;
+  gap: 26px;
+}
+
+.section {
+  display: grid;
+  gap: 14px;
+}
+
+.section > h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 14px;
+  }
+}

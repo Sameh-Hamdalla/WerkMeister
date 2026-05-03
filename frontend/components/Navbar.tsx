@@ -40,7 +40,9 @@ function Navbar() {
           <Bell size={18} />
         </button>
 
-        <div className="avatar">A</div>
+        <NavLink className="avatar" to="/login" aria-label="Login oeffnen">
+          A
+        </NavLink>
       </div>
     </nav>
   );
