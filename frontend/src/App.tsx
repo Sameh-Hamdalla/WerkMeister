@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Search, X } from "lucide-react";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -27,6 +28,14 @@ type Tool = {
 
 // Zentrale API-Adresse. Alle Werkzeug-Aktionen laufen ueber diese FastAPI-Route.
 const API_URL = "http://127.0.0.1:8000/api/tools";
+type SortOption =
+  | "newest"
+  | "name"
+  | "category"
+  | "location"
+  | "condition"
+  | "received"
+  | "maintenance";
 
 function App() {
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -45,6 +54,59 @@ function App() {
   );
   const [maintenanceDate, setMaintenanceDate] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
+  const [toolSearch, setToolSearch] = useState("");
+  const [toolSort, setToolSort] = useState<SortOption>("newest");
+
+  // Gefilterte und sortierte Liste fuer die Werkzeugseite. Suche/Sortierung laufen
+  // nur im Frontend und veraendern die gespeicherten Daten nicht.
+  const filteredTools = useMemo(() => {
+    const query = toolSearch.trim().toLowerCase();
+    const searchedTools = query
+      ? tools.filter((tool) =>
+          [
+            tool.name,
+            tool.category,
+            tool.location,
+            tool.condition,
+            tool.received_date,
+            tool.maintenance_date ?? "",
+          ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        )
+      : tools;
+
+    return [...searchedTools].sort((first, second) => {
+      if (toolSort === "name") {
+        return first.name.localeCompare(second.name, "de");
+      }
+
+      if (toolSort === "category") {
+        return first.category.localeCompare(second.category, "de");
+      }
+
+      if (toolSort === "location") {
+        return first.location.localeCompare(second.location, "de");
+      }
+
+      if (toolSort === "condition") {
+        return first.condition.localeCompare(second.condition, "de");
+      }
+
+      if (toolSort === "received") {
+        return second.received_date.localeCompare(first.received_date);
+      }
+
+      if (toolSort === "maintenance") {
+        return (first.maintenance_date ?? "9999-12-31").localeCompare(
+          second.maintenance_date ?? "9999-12-31"
+        );
+      }
+
+      return second.id - first.id;
+    });
+  }, [toolSearch, toolSort, tools]);
 
   // Laedt Werkzeuge robust aus dem Backend. Bei Fehlern wird eine leere Liste genutzt,
   // damit die UI nicht abstuerzt, wenn der Server kurz nicht erreichbar ist.
@@ -221,11 +283,65 @@ function App() {
                     </section>
 
                     <section className="section">
-                      <h3>Alle Werkzeuge</h3>
+                      <div className="section-toolbar">
+                        <div>
+                          <h3>Alle Werkzeuge</h3>
+                          <p>
+                            {filteredTools.length} von {tools.length} Eintraegen
+                            sichtbar
+                          </p>
+                        </div>
+
+                        <div className="tool-list-controls">
+                          <label className="tool-search">
+                            <Search size={17} />
+                            <input
+                              type="search"
+                              value={toolSearch}
+                              onChange={(event) =>
+                                setToolSearch(event.target.value)
+                              }
+                              placeholder="Werkzeug suchen..."
+                            />
+                            {toolSearch && (
+                              <button
+                                type="button"
+                                onClick={() => setToolSearch("")}
+                                aria-label="Suche leeren"
+                                title="Suche leeren"
+                              >
+                                <X size={16} />
+                              </button>
+                            )}
+                          </label>
+
+                          <label className="tool-sort">
+                            <span>Sortieren</span>
+                            <select
+                              value={toolSort}
+                              onChange={(event) =>
+                                setToolSort(event.target.value as SortOption)
+                              }
+                            >
+                              <option value="newest">Neueste zuerst</option>
+                              <option value="name">Name A-Z</option>
+                              <option value="category">Kategorie A-Z</option>
+                              <option value="location">Ort A-Z</option>
+                              <option value="condition">Zustand A-Z</option>
+                              <option value="received">Eingang neueste</option>
+                              <option value="maintenance">
+                                Wartung naechste
+                              </option>
+                            </select>
+                          </label>
+                        </div>
+                      </div>
+
                       <ToolList
-                        tools={tools}
+                        tools={filteredTools}
                         onEdit={startEdit}
                         onDelete={deleteTool}
+                        isSearching={toolSearch.trim().length > 0}
                       />
                     </section>
                   </div>

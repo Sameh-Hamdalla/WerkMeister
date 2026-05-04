@@ -16,6 +16,7 @@ type Props = {
   tools: Tool[];
   onEdit: (tool: Tool) => void;
   onDelete: (id: number) => void;
+  isSearching?: boolean;
 };
 
 // Wandelt freie Zustandstexte in CSS-Klassen um, damit die Badge-Farbe passt.
@@ -33,8 +34,9 @@ const getConditionClass = (condition: string) => {
   return "poor";
 };
 
-function ToolList({ tools, onEdit, onDelete }: Props) {
-  // Freundlicher Leerzustand, wenn noch keine Daten in der Datenbank liegen.
+function ToolList({ tools, onEdit, onDelete, isSearching = false }: Props) {
+  // Freundlicher Leerzustand: ohne Suche bedeutet es "keine Daten",
+  // mit Suche bedeutet es "keine passenden Treffer".
   if (tools.length === 0) {
     return (
       <div className="tool-empty">
@@ -42,8 +44,12 @@ function ToolList({ tools, onEdit, onDelete }: Props) {
           <Wrench size={24} />
         </div>
         <div>
-          <h4>Noch keine Werkzeuge</h4>
-          <p>Fuege dein erstes Werkzeug hinzu, um dein Inventar zu starten.</p>
+          <h4>{isSearching ? "Keine Treffer gefunden" : "Noch keine Werkzeuge"}</h4>
+          <p>
+            {isSearching
+              ? "Passe deine Suche an oder leere das Suchfeld."
+              : "Fuege dein erstes Werkzeug hinzu, um dein Inventar zu starten."}
+          </p>
         </div>
       </div>
     );

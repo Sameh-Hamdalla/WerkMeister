@@ -7,7 +7,7 @@
 }
 
 .main {
-  flex: 1; /* 🔥 DAS IST DER WICHTIGSTE FIX */
+  flex: 1; /* Fuellt den Platz neben der Sidebar. */
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
@@ -67,9 +67,138 @@
   font-weight: 800;
 }
 
+.section-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.section-toolbar h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.section-toolbar p {
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.tool-list-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tool-search {
+  width: min(360px, 100%);
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  color: var(--text-secondary);
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-search:focus-within {
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.tool-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  color: var(--text-primary);
+  background: transparent;
+  font: inherit;
+}
+
+.tool-search button {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  background: #f1f5f9;
+  cursor: pointer;
+}
+
+.tool-search button:hover {
+  color: #2563eb;
+  background: #dbeafe;
+}
+
+.tool-sort {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  color: var(--text-secondary);
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-sort span {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tool-sort select {
+  min-width: 150px;
+  border: 0;
+  outline: 0;
+  color: var(--text-primary);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tool-sort:focus-within {
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
 @media (max-width: 768px) {
   .content {
     padding: 18px;
+  }
+
+  .section-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tool-list-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tool-search {
+    width: 100%;
+  }
+
+  .tool-sort {
+    justify-content: space-between;
+  }
+
+  .tool-sort select {
+    min-width: 0;
+    flex: 1;
   }
 }
 
