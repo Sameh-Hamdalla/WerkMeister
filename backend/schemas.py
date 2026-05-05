@@ -17,6 +17,3 @@ class ToolCreate(BaseModel):
 class ToolResponse(ToolCreate):
     # Antwortmodell: gleiche Felder wie ToolCreate, aber mit Datenbank-ID.
     id: int
-
-    # Erlaubt Pydantic, direkt aus SQLAlchemy-Objekten eine Response zu bauen.
-    model_config = {"from_attributes": True}

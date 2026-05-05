@@ -1,36 +1,42 @@
 import os
+import sqlite3
+from contextlib import closing
+from datetime import date
 from pathlib import Path
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from models import TOOL_TABLE_SQL
 
-# SQLite-Datei fuer die Werkzeugdaten. Sie wird automatisch erstellt,
-# sobald FastAPI zum ersten Mal startet.
-sqlite_db_path = Path(os.getenv("SQLITE_DB_PATH", "tools.db"))
-sqlite_db_path.parent.mkdir(parents=True, exist_ok=True)
-DATABASE_URL = f"sqlite:///{sqlite_db_path}"
-
-# Die Engine ist die zentrale Verbindungsschicht zur Datenbank.
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Notwendig bei SQLite + FastAPI.
-)
-
-# Pro Request wird eine eigene Session genutzt. Commit passiert bewusst im CRUD-Code.
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-)
-
-# Alle SQLAlchemy-Modelle erben von Base, damit Tabellen erzeugt werden koennen.
-Base = declarative_base()
+# SQLite-Datei fuer die Werkzeugdaten. Auf Render kann der Pfad spaeter ueber
+# SQLITE_DB_PATH auf eine persistente Disk zeigen.
+DB_PATH = Path(os.getenv("SQLITE_DB_PATH", "tools.db"))
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
-def get_db():
-    # FastAPI-Dependency: oeffnet eine DB-Session und schliesst sie nach dem Request.
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_connection():
+    connection = sqlite3.connect(DB_PATH)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def init_db():
+    with closing(get_connection()) as connection:
+        connection.execute(TOOL_TABLE_SQL)
+        migrate_tools_table(connection)
+        connection.commit()
+
+
+def migrate_tools_table(connection):
+    columns = {
+        row["name"]
+        for row in connection.execute("PRAGMA table_info(tools)").fetchall()
+    }
+
+    if "received_date" not in columns:
+        today = date.today().isoformat()
+        connection.execute(
+            "ALTER TABLE tools "
+            f"ADD COLUMN received_date TEXT NOT NULL DEFAULT '{today}'"
+        )
+
+    if "maintenance_date" not in columns:
+        connection.execute("ALTER TABLE tools ADD COLUMN maintenance_date TEXT")

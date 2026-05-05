@@ -1,49 +1,118 @@
-from sqlalchemy.orm import Session
+from contextlib import closing
 
-import models
-
-
-def create_tool(db: Session, tool_data: dict):
-    # Erstellt aus den validierten API-Daten ein SQLAlchemy-Objekt.
-    tool = models.Tool(**tool_data)
-    db.add(tool)
-    db.commit()
-    db.refresh(tool)  # Laedt die von SQLite erzeugte ID in das Objekt.
-    return tool
+from database import get_connection
 
 
-def get_tools(db: Session):
-    # Neueste Eintraege stehen zuerst, damit Dashboard und Liste aktuell wirken.
-    return db.query(models.Tool).order_by(models.Tool.id.desc()).all()
+def row_to_dict(row):
+    return dict(row) if row else None
 
 
-def get_tool(db: Session, tool_id: int):
-    # Sucht genau ein Werkzeug per Primaerschluessel.
-    return db.query(models.Tool).filter(models.Tool.id == tool_id).first()
+def create_tool(tool_data: dict):
+    with closing(get_connection()) as connection:
+        cursor = connection.execute(
+            """
+            INSERT INTO tools (
+                name,
+                category,
+                location,
+                condition,
+                received_date,
+                maintenance_date
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                tool_data["name"],
+                tool_data["category"],
+                tool_data["location"],
+                tool_data["condition"],
+                tool_data["received_date"],
+                tool_data.get("maintenance_date"),
+            ),
+        )
+        connection.commit()
+        return get_tool(cursor.lastrowid)
 
 
-def update_tool(db: Session, tool_id: int, data: dict):
-    # Erst laden, dann alle uebergebenen Felder auf dem bestehenden Datensatz setzen.
-    tool = get_tool(db, tool_id)
+def get_tools():
+    with closing(get_connection()) as connection:
+        rows = connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                category,
+                location,
+                condition,
+                received_date,
+                maintenance_date
+            FROM tools
+            ORDER BY id DESC
+            """
+        ).fetchall()
+        return [row_to_dict(row) for row in rows]
+
+
+def get_tool(tool_id: int):
+    with closing(get_connection()) as connection:
+        row = connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                category,
+                location,
+                condition,
+                received_date,
+                maintenance_date
+            FROM tools
+            WHERE id = ?
+            """,
+            (tool_id,),
+        ).fetchone()
+        return row_to_dict(row)
+
+
+def update_tool(tool_id: int, data: dict):
+    if not get_tool(tool_id):
+        return None
+
+    with closing(get_connection()) as connection:
+        connection.execute(
+            """
+            UPDATE tools
+            SET
+                name = ?,
+                category = ?,
+                location = ?,
+                condition = ?,
+                received_date = ?,
+                maintenance_date = ?
+            WHERE id = ?
+            """,
+            (
+                data["name"],
+                data["category"],
+                data["location"],
+                data["condition"],
+                data["received_date"],
+                data.get("maintenance_date"),
+                tool_id,
+            ),
+        )
+        connection.commit()
+
+    return get_tool(tool_id)
+
+
+def delete_tool(tool_id: int):
+    tool = get_tool(tool_id)
 
     if not tool:
         return None
 
-    for key, value in data.items():
-        setattr(tool, key, value)
+    with closing(get_connection()) as connection:
+        connection.execute("DELETE FROM tools WHERE id = ?", (tool_id,))
+        connection.commit()
 
-    db.commit()
-    db.refresh(tool)
-    return tool
-
-
-def delete_tool(db: Session, tool_id: int):
-    # Gibt None zurueck, wenn die ID nicht existiert. Der Router macht daraus 404.
-    tool = get_tool(db, tool_id)
-
-    if not tool:
-        return None
-
-    db.delete(tool)
-    db.commit()
     return tool
