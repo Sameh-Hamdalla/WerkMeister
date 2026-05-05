@@ -26,8 +26,11 @@ type Tool = {
   maintenance_date?: string | null;
 };
 
-// Zentrale API-Adresse. Alle Werkzeug-Aktionen laufen ueber diese FastAPI-Route.
-const API_URL = "http://127.0.0.1:8000/api/tools";
+// Zentrale API-Adresse. Lokal nutzt die App FastAPI auf Port 8000,
+// auf Render kommt die URL aus der Environment-Variable VITE_API_URL.
+const API_URL = (
+  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api/tools"
+).replace(/\/$/, "");
 type SortOption =
   | "newest"
   | "name"

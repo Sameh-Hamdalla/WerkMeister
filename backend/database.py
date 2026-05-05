@@ -1,9 +1,14 @@
+import os
+from pathlib import Path
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # SQLite-Datei fuer die Werkzeugdaten. Sie wird automatisch erstellt,
 # sobald FastAPI zum ersten Mal startet.
-DATABASE_URL = "sqlite:///./tools.db"
+sqlite_db_path = Path(os.getenv("SQLITE_DB_PATH", "tools.db"))
+sqlite_db_path.parent.mkdir(parents=True, exist_ok=True)
+DATABASE_URL = f"sqlite:///{sqlite_db_path}"
 
 # Die Engine ist die zentrale Verbindungsschicht zur Datenbank.
 engine = create_engine(

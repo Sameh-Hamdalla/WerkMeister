@@ -56,3 +56,8 @@ app.add_middleware(
 
 # Bindet die Werkzeug-Routen in die App ein.
 app.include_router(tools.router)
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
